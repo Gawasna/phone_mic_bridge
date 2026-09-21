@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 
@@ -22,42 +23,54 @@ namespace PhoneMicBridge.Audio
             return metering;
         }
 
-        public void UpdateFromRawBuffer(byte[] buffer, int bytesRecorded, WaveFormat format, float gain = 1.0f)
+        /// <summary>
+        /// Zero-allocation hot path audio inspection using Span and MemoryMarshal.Cast.
+        /// Eliminates all temporary allocations and per-sample BitConverter overhead.
+        /// </summary>
+        public void UpdateFromRawBuffer(ReadOnlySpan<byte> buffer, WaveFormat format, float gain = 1.0f)
         {
-            if (bytesRecorded <= 0) return;
+            if (buffer.IsEmpty) return;
 
-            float sum = 0;
-            float max = 0;
-            int count = 0;
+            float sum = 0f;
+            float max = 0f;
 
             if (format.BitsPerSample == 32)
             {
-                int floatCount = bytesRecorded / 4;
-                for (int i = 0; i < floatCount; i++)
+                ReadOnlySpan<float> samples = MemoryMarshal.Cast<byte, float>(buffer);
+                for (int i = 0; i < samples.Length; i++)
                 {
-                    float sample = BitConverter.ToSingle(buffer, i * 4) * gain;
+                    float sample = samples[i] * gain;
                     float abs = Math.Abs(sample);
                     if (abs > max) max = abs;
                     sum += sample * sample;
-                    count++;
                 }
+
+                Peak = max;
+                Rms = samples.Length > 0 ? MathF.Sqrt(sum / samples.Length) : 0f;
             }
             else if (format.BitsPerSample == 16)
             {
-                int shortCount = bytesRecorded / 2;
-                for (int i = 0; i < shortCount; i++)
+                ReadOnlySpan<short> samples = MemoryMarshal.Cast<byte, short>(buffer);
+                for (int i = 0; i < samples.Length; i++)
                 {
-                    short val = BitConverter.ToInt16(buffer, i * 2);
-                    float sample = (val / 32768.0f) * gain;
+                    float sample = (samples[i] / 32768.0f) * gain;
                     float abs = Math.Abs(sample);
                     if (abs > max) max = abs;
                     sum += sample * sample;
-                    count++;
                 }
-            }
 
-            Peak = max;
-            Rms = count > 0 ? (float)Math.Sqrt(sum / count) : 0f;
+                Peak = max;
+                Rms = samples.Length > 0 ? MathF.Sqrt(sum / samples.Length) : 0f;
+            }
+        }
+
+        /// <summary>
+        /// Overload accepting byte array and length for backward compatibility with NAudio event buffers.
+        /// </summary>
+        public void UpdateFromRawBuffer(byte[] buffer, int bytesRecorded, WaveFormat format, float gain = 1.0f)
+        {
+            if (buffer == null || bytesRecorded <= 0) return;
+            UpdateFromRawBuffer(buffer.AsSpan(0, bytesRecorded), format, gain);
         }
     }
 }

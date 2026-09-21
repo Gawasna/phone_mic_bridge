@@ -11,11 +11,14 @@ namespace PhoneMicBridge.Audio
         private readonly MMDevice _renderDevice;
         private readonly MMDevice? _captureDevice;
         private readonly DeviceNotificationWatcher _deviceWatcher;
+        private readonly BridgeStateMachine _stateMachine = new(BridgeState.Disconnected);
+
         private WasapiOut? _wasapiOut;
         private WasapiCapture? _wasapiCapture;
         private BufferedWaveProvider? _captureBuffer;
+        private bool _isDisposed;
 
-        public BridgeState State { get; private set; } = BridgeState.Disconnected;
+        public BridgeState State => _stateMachine.CurrentState;
         public event EventHandler<BridgeState>? StateChanged;
         public event EventHandler<string>? DeviceWarningReceived;
 
@@ -35,13 +38,17 @@ namespace PhoneMicBridge.Audio
             int targetRate = RenderFormat.SampleRate;
             Pipeline = new MixingPipeline(targetRate, 1);
 
+            _stateMachine.StateChanged += (s, e) => StateChanged?.Invoke(this, e);
+
             _deviceWatcher = new DeviceNotificationWatcher();
             _deviceWatcher.DeviceStateChanged += OnDeviceStateChanged;
         }
 
         private void OnDeviceStateChanged(object? sender, DeviceStateChangedEventArgs e)
         {
-            // Detect if our active target render device was unplugged or disconnected
+            if (_isDisposed) return;
+
+            // Mechanism: Detect if target render device was unplugged or disconnected
             if (string.Equals(e.DeviceId, _renderDevice.ID, StringComparison.OrdinalIgnoreCase))
             {
                 if (e.NewState != DeviceState.Active)
@@ -50,7 +57,7 @@ namespace PhoneMicBridge.Audio
                     if (State == BridgeState.Streaming)
                     {
                         Stop();
-                        SetState(BridgeState.Error);
+                        _stateMachine.TryTransitionTo(BridgeState.Error);
                     }
                 }
             }
@@ -66,6 +73,7 @@ namespace PhoneMicBridge.Audio
 
         public void SetupMicCapture(bool initialEnabled = true)
         {
+            ObjectDisposedException.ThrowIf(_isDisposed, this);
             if (_captureDevice == null) return;
 
             _wasapiCapture = new WasapiCapture(_captureDevice, true, 50);
@@ -88,26 +96,36 @@ namespace PhoneMicBridge.Audio
 
         public void Start()
         {
+            ObjectDisposedException.ThrowIf(_isDisposed, this);
             if (State == BridgeState.Streaming) return;
 
-            SetState(BridgeState.Connecting);
+            _stateMachine.TransitionTo(BridgeState.Connecting);
 
-            var outputProvider = OutputMeter.Wrap(Pipeline.GetOutputSampleProvider());
-
-            _wasapiOut = new WasapiOut(_renderDevice, AudioClientShareMode.Shared, false, 50);
-            _wasapiOut.Init(outputProvider);
-
-            if (_wasapiCapture != null && Pipeline.IsMicEnabled)
+            try
             {
-                _wasapiCapture.StartRecording();
-            }
+                var outputProvider = OutputMeter.Wrap(Pipeline.GetOutputSampleProvider());
 
-            _wasapiOut.Play();
-            SetState(BridgeState.Streaming);
+                _wasapiOut = new WasapiOut(_renderDevice, AudioClientShareMode.Shared, false, 50);
+                _wasapiOut.Init(outputProvider);
+
+                if (_wasapiCapture != null && Pipeline.IsMicEnabled)
+                {
+                    _wasapiCapture.StartRecording();
+                }
+
+                _wasapiOut.Play();
+                _stateMachine.TransitionTo(BridgeState.Streaming);
+            }
+            catch
+            {
+                _stateMachine.TryTransitionTo(BridgeState.Error);
+                throw;
+            }
         }
 
         public void Stop()
         {
+            if (_isDisposed) return;
             if (State == BridgeState.Stopped || State == BridgeState.Disconnected) return;
 
             try
@@ -121,19 +139,18 @@ namespace PhoneMicBridge.Audio
             }
             finally
             {
-                SetState(BridgeState.Stopped);
+                _stateMachine.TryTransitionTo(BridgeState.Stopped);
             }
-        }
-
-        private void SetState(BridgeState newState)
-        {
-            State = newState;
-            StateChanged?.Invoke(this, newState);
         }
 
         public void Dispose()
         {
+            if (_isDisposed) return;
+            _isDisposed = true;
+
             Stop();
+            _stateMachine.TryTransitionTo(BridgeState.Disconnected);
+
             _deviceWatcher.DeviceStateChanged -= OnDeviceStateChanged;
             _deviceWatcher.Dispose();
             _wasapiOut?.Dispose();
