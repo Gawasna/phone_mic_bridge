@@ -1,0 +1,43 @@
+# Build results
+bin/
+obj/
+dist/
+
+# Visual Studio / VS Code
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider
+.idea/
+*.sln.iml
+
+# OS specific
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Temporary / Log files
+*.log
+scratch/
+
+# Media & Audio test files
+*.mp3
+*.wav
+*.ogg
+*.flac
+*.aac
+*.m4a
+
+# Internal documentation, roadmap & notes
+docs/
+NEXT_DIRECTION.md
+HANDOFF.md
+*HANDOFF*
+TRACE.md
+.agents/
+*.md
+!README.md
