@@ -10,12 +10,14 @@ namespace PhoneMicBridge.Audio
     {
         private readonly MMDevice _renderDevice;
         private readonly MMDevice? _captureDevice;
+        private readonly DeviceNotificationWatcher _deviceWatcher;
         private WasapiOut? _wasapiOut;
         private WasapiCapture? _wasapiCapture;
         private BufferedWaveProvider? _captureBuffer;
 
         public BridgeState State { get; private set; } = BridgeState.Disconnected;
         public event EventHandler<BridgeState>? StateChanged;
+        public event EventHandler<string>? DeviceWarningReceived;
 
         public MixingPipeline Pipeline { get; }
         public AudioMeter OutputMeter { get; } = new();
@@ -32,6 +34,34 @@ namespace PhoneMicBridge.Audio
 
             int targetRate = RenderFormat.SampleRate;
             Pipeline = new MixingPipeline(targetRate, 1);
+
+            _deviceWatcher = new DeviceNotificationWatcher();
+            _deviceWatcher.DeviceStateChanged += OnDeviceStateChanged;
+        }
+
+        private void OnDeviceStateChanged(object? sender, DeviceStateChangedEventArgs e)
+        {
+            // Detect if our active target render device was unplugged or disconnected
+            if (string.Equals(e.DeviceId, _renderDevice.ID, StringComparison.OrdinalIgnoreCase))
+            {
+                if (e.NewState != DeviceState.Active)
+                {
+                    DeviceWarningReceived?.Invoke(this, $"Target HFP device state changed to: {e.NewState}");
+                    if (State == BridgeState.Streaming)
+                    {
+                        Stop();
+                        SetState(BridgeState.Error);
+                    }
+                }
+            }
+            else if (_captureDevice != null && string.Equals(e.DeviceId, _captureDevice.ID, StringComparison.OrdinalIgnoreCase))
+            {
+                if (e.NewState != DeviceState.Active)
+                {
+                    DeviceWarningReceived?.Invoke(this, $"Microphone capture device state changed to: {e.NewState}");
+                    Pipeline.SetMicEnabled(false);
+                }
+            }
         }
 
         public void SetupMicCapture(bool initialEnabled = true)
@@ -104,6 +134,8 @@ namespace PhoneMicBridge.Audio
         public void Dispose()
         {
             Stop();
+            _deviceWatcher.DeviceStateChanged -= OnDeviceStateChanged;
+            _deviceWatcher.Dispose();
             _wasapiOut?.Dispose();
             _wasapiCapture?.Dispose();
             Pipeline.Dispose();

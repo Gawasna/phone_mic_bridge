@@ -14,4 +14,9 @@
     <PackageReference Include="NAudio.Wasapi" Version="3.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="tests\**" />
+    <None Remove="tests\**" />
+  </ItemGroup>
+
 </Project>
