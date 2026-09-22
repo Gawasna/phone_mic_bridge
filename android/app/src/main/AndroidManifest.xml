@@ -33,7 +33,7 @@
         <service
             android:name=".service.AudioRouteService"
             android:enabled="true"
-            android:exported="false"
+            android:exported="true"
             android:foregroundServiceType="mediaPlayback|connectedDevice" />
 
     </application>

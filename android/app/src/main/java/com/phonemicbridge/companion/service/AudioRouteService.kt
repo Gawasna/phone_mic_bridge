@@ -9,6 +9,7 @@ import android.os.IBinder
 import android.os.PowerManager
 import com.phonemicbridge.companion.audio.AndroidAudioRouteController
 import com.phonemicbridge.companion.audio.AudioRouteController
+import com.phonemicbridge.companion.bluetooth.BluetoothBridgeMonitor
 import com.phonemicbridge.companion.model.AudioRouteTarget
 import com.phonemicbridge.companion.model.CompanionState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -30,12 +31,34 @@ class AudioRouteService : Service() {
 
     private lateinit var audioController: AudioRouteController
     private lateinit var notificationManager: RouteNotificationManager
+    private lateinit var bridgeMonitor: BluetoothBridgeMonitor
     private var wakeLock: PowerManager.WakeLock? = null
 
     override fun onCreate() {
         super.onCreate()
         audioController = AndroidAudioRouteController(this)
         notificationManager = RouteNotificationManager(this)
+
+        bridgeMonitor = BluetoothBridgeMonitor(this) { isConnected, deviceName, isScoActive ->
+            val statusMsg = when {
+                isScoActive -> "Host Audio Stream Active ($deviceName)"
+                isConnected -> "Connected via Bluetooth HFP ($deviceName)"
+                else -> "Bluetooth Bridge Disconnected"
+            }
+
+            _serviceState.value = _serviceState.value.copy(
+                isBridgeConnected = isConnected,
+                connectedBridgeName = deviceName,
+                isScoAudioActive = isScoActive,
+                statusMessage = statusMsg
+            )
+
+            notificationManager.update(
+                activeRoute = _serviceState.value.activeRoute,
+                isBridgeConnected = isConnected
+            )
+        }
+        bridgeMonitor.start()
 
         val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(
@@ -69,7 +92,10 @@ class AudioRouteService : Service() {
         wakeLock?.acquire(60 * 60 * 1000L) // 1 hour safety timeout
         setRoute(target)
 
-        val notification = notificationManager.buildNotification(target)
+        val notification = notificationManager.buildNotification(
+            activeRoute = target,
+            isBridgeConnected = _serviceState.value.isBridgeConnected
+        )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             startForeground(
                 RouteNotificationManager.NOTIFICATION_ID,
@@ -85,26 +111,30 @@ class AudioRouteService : Service() {
 
     private fun setRoute(target: AudioRouteTarget) {
         audioController.routeTo(target)
-        notificationManager.update(target)
+        notificationManager.update(
+            activeRoute = target,
+            isBridgeConnected = _serviceState.value.isBridgeConnected
+        )
         updateState(isRunning = true, route = target)
     }
 
     private fun updateState(isRunning: Boolean, route: AudioRouteTarget) {
-        _serviceState.value = CompanionState(
+        _serviceState.value = _serviceState.value.copy(
             isRunning = isRunning,
             activeRoute = route,
-            activeDeviceName = audioController.activeDeviceName,
-            statusMessage = if (isRunning) "Active: ${route.displayName}" else "Stopped"
+            activeDeviceName = audioController.activeDeviceName
         )
     }
 
     private fun stopRoutingService() {
+        bridgeMonitor.close()
         audioController.release()
+
         if (wakeLock?.isHeld == true) {
             wakeLock?.release()
         }
 
-        updateState(isRunning = false, route = AudioRouteTarget.SYSTEM_DEFAULT)
+        _serviceState.value = CompanionState()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }

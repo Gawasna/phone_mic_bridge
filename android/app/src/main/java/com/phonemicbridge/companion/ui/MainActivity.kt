@@ -3,6 +3,7 @@ package com.phonemicbridge.companion.ui
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.os.Build
 import android.os.Bundle
 import android.widget.Button
@@ -12,7 +13,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.phonemicbridge.companion.R
-import com.phonemicbridge.companion.model.AudioRouteTarget
 import com.phonemicbridge.companion.model.CompanionState
 import com.phonemicbridge.companion.service.AudioRouteService
 import kotlinx.coroutines.flow.collectLatest
@@ -21,6 +21,8 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity() {
 
     private lateinit var tvStatus: TextView
+    private lateinit var tvBridgeStatus: TextView
+    private lateinit var tvHostDevice: TextView
     private lateinit var tvRoute: TextView
     private lateinit var btnToggleService: Button
     private lateinit var btnSpeaker: Button
@@ -30,7 +32,10 @@ class MainActivity : AppCompatActivity() {
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) {
-        // Permissions evaluated, UI will reflect state reactively
+        // Permissions updated, trigger re-evaluation of state
+        if (AudioRouteService.serviceState.value.isRunning) {
+            sendServiceCommand(AudioRouteService.ACTION_START)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,10 +46,17 @@ class MainActivity : AppCompatActivity() {
         setupListeners()
         observeServiceState()
         checkAndRequestPermissions()
+
+        // Automatically ensure route service is started
+        if (!AudioRouteService.serviceState.value.isRunning) {
+            sendServiceCommand(AudioRouteService.ACTION_START)
+        }
     }
 
     private fun bindViews() {
         tvStatus = findViewById(R.id.tvStatus)
+        tvBridgeStatus = findViewById(R.id.tvBridgeStatus)
+        tvHostDevice = findViewById(R.id.tvHostDevice)
         tvRoute = findViewById(R.id.tvRoute)
         btnToggleService = findViewById(R.id.btnToggleService)
         btnSpeaker = findViewById(R.id.btnSpeaker)
@@ -91,6 +103,22 @@ class MainActivity : AppCompatActivity() {
             tvStatus.text = getString(R.string.status_stopped)
             btnToggleService.text = getString(R.string.btn_start_service)
         }
+
+        if (state.isBridgeConnected) {
+            tvBridgeStatus.text = "● Bluetooth Bridge: CONNECTED"
+            tvBridgeStatus.setTextColor(Color.parseColor("#00E676")) // Green
+
+            val dev = if (state.connectedBridgeName.isNotBlank()) state.connectedBridgeName else "Windows Host"
+            val scoTag = if (state.isScoAudioActive) " [SCO Audio Active]" else ""
+            tvHostDevice.text = "Windows Host: $dev$scoTag"
+            tvHostDevice.setTextColor(Color.parseColor("#2E7D32"))
+        } else {
+            tvBridgeStatus.text = "● Bluetooth Bridge: DISCONNECTED"
+            tvBridgeStatus.setTextColor(Color.parseColor("#FF5252")) // Red
+            tvHostDevice.text = "Windows Host: Chưa kết nối Bluetooth HFP"
+            tvHostDevice.setTextColor(Color.parseColor("#757575"))
+        }
+
         tvRoute.text = "Current Route: ${state.activeRoute.displayName} (${state.activeDeviceName})"
     }
 

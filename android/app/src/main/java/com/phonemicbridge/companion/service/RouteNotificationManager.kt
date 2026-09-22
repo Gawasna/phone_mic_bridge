@@ -45,7 +45,7 @@ class RouteNotificationManager(
         }
     }
 
-    fun buildNotification(activeRoute: AudioRouteTarget): Notification {
+    fun buildNotification(activeRoute: AudioRouteTarget, isBridgeConnected: Boolean = false): Notification {
         val openAppIntent = Intent(context, MainActivity::class.java).let {
             PendingIntent.getActivity(context, 0, it, PendingIntent.FLAG_IMMUTABLE)
         }
@@ -54,8 +54,10 @@ class RouteNotificationManager(
         val earpieceIntent = createServiceActionIntent(ACTION_ROUTE_EARPIECE, 2)
         val stopIntent = createServiceActionIntent(ACTION_STOP, 3)
 
+        val linkStatus = if (isBridgeConnected) "Bridge: CONNECTED (USB)" else "Bridge: STANDALONE"
+
         return NotificationCompat.Builder(context, CHANNEL_ID)
-            .setContentTitle("Phone Mic Bridge Active")
+            .setContentTitle("Phone Mic Bridge - $linkStatus")
             .setContentText("Enforced Route: ${activeRoute.displayName}")
             .setSmallIcon(android.R.drawable.ic_btn_speak_now)
             .setContentIntent(openAppIntent)
@@ -66,8 +68,8 @@ class RouteNotificationManager(
             .build()
     }
 
-    fun update(activeRoute: AudioRouteTarget) {
-        notificationManager.notify(NOTIFICATION_ID, buildNotification(activeRoute))
+    fun update(activeRoute: AudioRouteTarget, isBridgeConnected: Boolean = false) {
+        notificationManager.notify(NOTIFICATION_ID, buildNotification(activeRoute, isBridgeConnected))
     }
 
     private fun createServiceActionIntent(action: String, requestCode: Int): PendingIntent {

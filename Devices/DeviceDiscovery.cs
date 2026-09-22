@@ -44,17 +44,43 @@ namespace PhoneMicBridge.Devices
         public static MMDevice? FindTargetRenderDevice(string targetGuid = DEFAULT_TARGET_HFP_GUID)
         {
             var enumerator = new MMDeviceEnumerator();
-            var devices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.All);
 
-            foreach (var d in devices)
+            // Priority 1: Exact match by targetGuid if active
+            if (!string.IsNullOrWhiteSpace(targetGuid))
             {
-                if (IsMatchingHfpDevice(d, targetGuid))
+                try
+                {
+                    string fullId = "{0.0.0.00000000}.{" + targetGuid.Trim('{', '}') + "}";
+                    var exactDevice = enumerator.GetDevice(fullId);
+                    if (exactDevice != null && exactDevice.State == DeviceState.Active)
+                        return exactDevice;
+                }
+                catch
+                {
+                    // Continue to enumeration search
+                }
+
+                var allDevices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.All);
+                foreach (var d in allDevices)
+                {
+                    if (d.ID.Contains(targetGuid, StringComparison.OrdinalIgnoreCase) && d.State == DeviceState.Active)
+                        return d;
+                }
+            }
+
+            // Priority 2: Any Active Bluetooth HFP Hands-Free endpoint
+            var activeDevices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+            foreach (var d in activeDevices)
+            {
+                string lowerName = d.FriendlyName.ToLowerInvariant();
+                if (lowerName.Contains("hands-free") || lowerName.Contains("handsfree") || lowerName.Contains("bthhfaud"))
                     return d;
             }
 
+            // Priority 3: Target GUID even if not currently active
             try
             {
-                string fullId = "{0.0.0.00000000}.{" + targetGuid + "}";
+                string fullId = "{0.0.0.00000000}.{" + targetGuid.Trim('{', '}') + "}";
                 return enumerator.GetDevice(fullId);
             }
             catch
@@ -78,12 +104,7 @@ namespace PhoneMicBridge.Devices
 
         private static bool IsMatchingHfpDevice(MMDevice device, string targetGuid)
         {
-            if (device.ID.Contains(targetGuid, StringComparison.OrdinalIgnoreCase))
-                return true;
-
-            // Fallback detection for Bluetooth HFP hands-free audio endpoints
-            string lowerName = device.FriendlyName.ToLowerInvariant();
-            if (lowerName.Contains("hands-free") || lowerName.Contains("handsfree") || lowerName.Contains("bthhfaud"))
+            if (!string.IsNullOrWhiteSpace(targetGuid) && device.ID.Contains(targetGuid, StringComparison.OrdinalIgnoreCase))
                 return true;
 
             return false;
