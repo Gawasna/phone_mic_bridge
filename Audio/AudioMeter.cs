@@ -12,15 +12,30 @@ namespace PhoneMicBridge.Audio
 
         public ISampleProvider Wrap(ISampleProvider source)
         {
-            var metering = new MeteringSampleProvider(source);
-            metering.StreamVolume += (s, e) =>
+            return new PhoneMicBridge.Application.ZeroAllocMeteringSampleProvider(source, this);
+        }
+
+        /// <summary>
+        /// Zero-allocation hot path audio inspection using Span<float>.
+        /// Calculates Peak and RMS directly from sample buffer without heap allocation.
+        /// </summary>
+        public void UpdateFromSamples(ReadOnlySpan<float> samples, float gain = 1.0f)
+        {
+            if (samples.IsEmpty) return;
+
+            float sum = 0f;
+            float max = 0f;
+
+            for (int i = 0; i < samples.Length; i++)
             {
-                if (e.MaxSampleValues != null && e.MaxSampleValues.Length > 0)
-                {
-                    Peak = e.MaxSampleValues[0];
-                }
-            };
-            return metering;
+                float sample = samples[i] * gain;
+                float abs = Math.Abs(sample);
+                if (abs > max) max = abs;
+                sum += sample * sample;
+            }
+
+            Peak = max;
+            Rms = samples.Length > 0 ? MathF.Sqrt(sum / samples.Length) : 0f;
         }
 
         /// <summary>

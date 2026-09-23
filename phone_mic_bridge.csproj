@@ -17,6 +17,9 @@
   <ItemGroup>
     <Compile Remove="tests\**" />
     <None Remove="tests\**" />
+    <Compile Remove="Gui\**" />
+    <None Remove="Gui\**" />
+    <Page Remove="Gui\**" />
   </ItemGroup>
 
 </Project>
