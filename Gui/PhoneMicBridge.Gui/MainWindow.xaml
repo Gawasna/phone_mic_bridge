@@ -215,7 +215,7 @@
 
         <!-- ================================================================= -->
         <!-- ROW 1: SUBTOOLBAR (48px)                                          -->
-        <!-- Action1 (Left: Start/Stop, Mute, Mode) | Selection1 (Right: Devs)-->
+        <!-- Action1 (Left: Start/Stop, Mute, Route Mode, Tone) | Selection1 (BT, Host Dev) -->
         <!-- ================================================================= -->
         <Border Grid.Row="1" Background="{StaticResource SubToolbarBgBrush}" BorderBrush="{StaticResource DarkBorderBrush}" BorderThickness="0,0,0,1" Padding="12,6">
             <Grid>
@@ -224,7 +224,7 @@
                     <ColumnDefinition Width="*" />   <!-- Selection1 Group (Aligned with MainSection) -->
                 </Grid.ColumnDefinitions>
 
-                <!-- Action1: Start/Stop, Mute Mic, Mode Toggle -->
+                <!-- Action1: Start/Stop, Mute Mic, Route Mode Switch, Tone -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
                     <!-- ActBtn 1: Start / Stop Button (36x36) -->
                     <Grid Width="36" Height="36" Margin="0,0,8,0">
@@ -268,13 +268,77 @@
                         </Grid>
                     </Button>
 
-                    <!-- Selection Toggle: Test Tone / Live Mic Switch (120x36) -->
-                    <Button Style="{StaticResource ToolbarButton}" 
+                    <!-- ActBtn 3: Route Mode Segmented Switch (IN / OUT) -->
+                    <Border Background="#F1F5F9" BorderBrush="{StaticResource DarkBorderBrush}" BorderThickness="1" CornerRadius="2" Height="36" Margin="0,0,8,0" Padding="2" VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal">
+                            <!-- IN Button -->
+                            <Button Command="{Binding SetRouteInCommand}" Width="44" Height="30" Margin="0,0,1,0" ToolTip="Host Input Route: Capture PC microphone to bridge">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Background" Value="Transparent" />
+                                        <Setter Property="Foreground" Value="#64748B" />
+                                        <Setter Property="BorderThickness" Value="0" />
+                                        <Setter Property="FontWeight" Value="SemiBold" />
+                                        <Setter Property="FontSize" Value="10" />
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="1">
+                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsRouteIn}" Value="True">
+                                                <Setter Property="Background" Value="#1E293B" />
+                                                <Setter Property="Foreground" Value="#FFFFFF" />
+                                                <Setter Property="FontWeight" Value="Bold" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <TextBlock Text="IN" />
+                            </Button>
+
+                            <!-- OUT Button -->
+                            <Button Command="{Binding SetRouteOutCommand}" Width="44" Height="30" ToolTip="Host Output Route: Direct PC output playback to bridge">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <Setter Property="Background" Value="Transparent" />
+                                        <Setter Property="Foreground" Value="#64748B" />
+                                        <Setter Property="BorderThickness" Value="0" />
+                                        <Setter Property="FontWeight" Value="SemiBold" />
+                                        <Setter Property="FontSize" Value="10" />
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border x:Name="bd" Background="{TemplateBinding Background}" CornerRadius="1">
+                                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsRouteOut}" Value="True">
+                                                <Setter Property="Background" Value="#1E293B" />
+                                                <Setter Property="Foreground" Value="#FFFFFF" />
+                                                <Setter Property="FontWeight" Value="Bold" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <TextBlock Text="OUT" />
+                            </Button>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- ActBtn 4: Test Tone Generator Compact Button (36x36) -->
+                    <Button Style="{StaticResource SquareActionButton}" 
                             Command="{Binding ToggleTestToneCommand}" 
-                            Width="120" Height="36" 
-                            ToolTip="Toggle 1000 Hz test tone injection">
-                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                            <Ellipse Width="8" Height="8" Margin="0,0,6,0">
+                            ToolTip="{Binding ToneStatusText}">
+                        <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Ellipse Width="7" Height="7" Margin="0,0,0,1">
                                 <Ellipse.Style>
                                     <Style TargetType="Ellipse">
                                         <Setter Property="Fill" Value="#94A3B8" />
@@ -286,30 +350,127 @@
                                     </Style>
                                 </Ellipse.Style>
                             </Ellipse>
-                            <TextBlock Text="{Binding ToneButtonText}" FontSize="10" FontWeight="Bold" VerticalAlignment="Center" />
+                            <TextBlock Text="1kHz" FontSize="8" FontWeight="Bold" Foreground="#475569" HorizontalAlignment="Center" />
                         </StackPanel>
                     </Button>
                 </StackPanel>
 
-                <!-- Selection1: Dropdown1 (Device Render) + Dropdown2 (Input Capture) -->
+                <!-- Selection1: Dropdown 1 (Bluetooth Devices + BT Settings Nav) + Dropdown 2 (Host Audio Endpoint: IN or OUT) -->
                 <Grid Grid.Column="1" Margin="8,0,0,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <!-- Dropdown 1: Target Render Endpoint (Output) -->
+                    <!-- Dropdown 1: Bluetooth Device List with System Settings Nav -->
                     <DockPanel Grid.Column="0" Margin="0,0,6,0" VerticalAlignment="Center">
-                        <TextBlock Text="OUT:" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,4,0" DockPanel.Dock="Left" />
-                        <ComboBox ItemsSource="{Binding RenderDevices}" 
-                                  SelectedItem="{Binding SelectedRenderDevice, Mode=TwoWay}"
-                                  Height="36" VerticalContentAlignment="Center" ToolTip="Select target playback device (Virtual Cable / Bluetooth HFP)">
+                        <TextBlock Text="BT DEV:" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,4,0" DockPanel.Dock="Left" />
+                        <!-- Button nav to Windows Bluetooth Settings -->
+                        <Button DockPanel.Dock="Right" Style="{StaticResource ToolbarButton}" Command="{Binding OpenBluetoothSettingsCommand}" Margin="4,0,0,0" Height="36" Width="30" Padding="0" ToolTip="Open Windows Bluetooth Settings (ms-settings:bluetooth)">
+                            <Path Data="M 12 15 A 3 3 0 1 0 12 9 A 3 3 0 1 0 12 15 M 19.4 15 A 1.65 1.65 0 0 0 19.73 16.82 L 19.8 16.9 A 2 2 0 1 1 17 19.7 L 16.9 19.6 A 1.65 1.65 0 0 0 15 19.4 A 1.65 1.65 0 0 0 13.5 20.9 L 13.5 21 A 2 2 0 1 1 9.5 21 L 9.5 20.9 A 1.65 1.65 0 0 0 8 19.4 A 1.65 1.65 0 0 0 6.18 19.73 L 6.1 19.8 A 2 2 0 1 1 3.3 17 L 3.4 16.9 A 1.65 1.65 0 0 0 3.6 15 A 1.65 1.65 0 0 0 2.1 13.5 L 2 13.5 A 2 2 0 1 1 2 9.5 L 2.1 9.5 A 1.65 1.65 0 0 0 3.6 8 A 1.65 1.65 0 0 0 3.27 6.18 L 3.2 6.1 A 2 2 0 1 1 6 3.3 L 6.1 3.4 A 1.65 1.65 0 0 0 8 3.6 A 1.65 1.65 0 0 0 9.5 2.1 L 9.5 2 A 2 2 0 1 1 13.5 2 L 13.5 2.1 A 1.65 1.65 0 0 0 15 3.6 A 1.65 1.65 0 0 0 16.82 3.27 L 16.9 3.2 A 2 2 0 1 1 19.7 6 L 19.6 6.1 A 1.65 1.65 0 0 0 19.4 8 A 1.65 1.65 0 0 0 20.9 9.5 L 21 9.5 A 2 2 0 1 1 21 13.5 L 20.9 13.5 A 1.65 1.65 0 0 0 19.4 15 Z" 
+                                  Stroke="#475569" StrokeThickness="1.2" Width="12" Height="12" Stretch="Uniform" />
+                        </Button>
+                        <ComboBox ItemsSource="{Binding BluetoothDevices}" 
+                                  SelectedItem="{Binding SelectedBluetoothDevice, Mode=TwoWay}"
+                                  Height="36" VerticalContentAlignment="Center" ToolTip="Select paired Bluetooth device for audio bridge">
+                            <ComboBox.ItemContainerStyle>
+                                <Style TargetType="ComboBoxItem">
+                                    <Setter Property="IsEnabled" Value="{Binding CanSelectForBridge}" />
+                                    <Style.Triggers>
+                                        <Trigger Property="IsEnabled" Value="False">
+                                            <Setter Property="Opacity" Value="0.6" />
+                                            <Setter Property="ToolTip" Value="Device is offline or incompatible. Connect in Windows Settings first." />
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ComboBox.ItemContainerStyle>
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
                                     <DockPanel LastChildFill="True">
-                                        <Border Background="{StaticResource TechGreenBgBrush}" BorderBrush="{StaticResource TechGreenBorderBrush}" BorderThickness="1" CornerRadius="1" Padding="3,1" Margin="4,0,0,0" DockPanel.Dock="Right" Visibility="{Binding IsTargetHfp, Converter={StaticResource BoolToVisConv}}">
-                                            <TextBlock Text="HFP" FontSize="8" FontWeight="Bold" Foreground="{StaticResource TechGreenBrush}" />
+                                        <!-- Right: Status Badge -->
+                                        <Border CornerRadius="2" Padding="4,1" Margin="4,0,0,0" DockPanel.Dock="Right">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <!-- Default: Offline (Gray) -->
+                                                    <Setter Property="Background" Value="#F1F5F9" />
+                                                    <Setter Property="BorderBrush" Value="#CBD5E1" />
+                                                    <Setter Property="BorderThickness" Value="1" />
+                                                    <Style.Triggers>
+                                                        <!-- Bridge Ready: Green -->
+                                                        <DataTrigger Binding="{Binding IsBridgeReady}" Value="True">
+                                                            <Setter Property="Background" Value="{StaticResource TechGreenBgBrush}" />
+                                                            <Setter Property="BorderBrush" Value="{StaticResource TechGreenBorderBrush}" />
+                                                        </DataTrigger>
+                                                        <!-- Incompatible A2DP: Red tint -->
+                                                        <DataTrigger Binding="{Binding IsHfpSupported}" Value="False">
+                                                            <Setter Property="Background" Value="#FEF2F2" />
+                                                            <Setter Property="BorderBrush" Value="#FECACA" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock Text="{Binding BridgeSupportStatus}" FontSize="8" FontWeight="Bold">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Foreground" Value="#64748B" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsBridgeReady}" Value="True">
+                                                                <Setter Property="Foreground" Value="{StaticResource TechGreenBrush}" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding IsHfpSupported}" Value="False">
+                                                                <Setter Property="Foreground" Value="#DC2626" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
                                         </Border>
+
+                                        <!-- Left: Category Badge -->
+                                        <Border CornerRadius="2" Padding="3,1" Margin="0,0,6,0" DockPanel.Dock="Left">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <!-- Default / Other -->
+                                                    <Setter Property="Background" Value="#F1F5F9" />
+                                                    <Setter Property="BorderBrush" Value="#E2E8F0" />
+                                                    <Setter Property="BorderThickness" Value="1" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding CategoryText}" Value="PHONE">
+                                                            <Setter Property="Background" Value="#EEF2FF" />
+                                                            <Setter Property="BorderBrush" Value="#C7D2FE" />
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding CategoryText}" Value="HEADSET">
+                                                            <Setter Property="Background" Value="#F0FDF4" />
+                                                            <Setter Property="BorderBrush" Value="#BBF7D0" />
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding CategoryText}" Value="SPEAKER">
+                                                            <Setter Property="Background" Value="#FFF7ED" />
+                                                            <Setter Property="BorderBrush" Value="#FED7AA" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+                                            <TextBlock Text="{Binding CategoryText}" FontSize="8" FontWeight="Bold">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Foreground" Value="#475569" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding CategoryText}" Value="PHONE">
+                                                                <Setter Property="Foreground" Value="#4338CA" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding CategoryText}" Value="HEADSET">
+                                                                <Setter Property="Foreground" Value="#15803D" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding CategoryText}" Value="SPEAKER">
+                                                                <Setter Property="Foreground" Value="#C2410C" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                        </Border>
+
+                                        <!-- Center: Device Name -->
                                         <TextBlock Text="{Binding Name}" FontSize="11" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                                     </DockPanel>
                                 </DataTemplate>
@@ -317,12 +478,12 @@
                         </ComboBox>
                     </DockPanel>
 
-                    <!-- Dropdown 2: Input Capture Source (Microphone) -->
+                    <!-- Dropdown 2: Adaptive Host Endpoint (IN: Mic or OUT: Speaker depending on Route Mode) -->
                     <DockPanel Grid.Column="1" Margin="6,0,0,0" VerticalAlignment="Center">
-                        <TextBlock Text="IN:" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,4,0" DockPanel.Dock="Left" />
-                        <ComboBox ItemsSource="{Binding CaptureDevices}" 
-                                  SelectedItem="{Binding SelectedCaptureDevice, Mode=TwoWay}"
-                                  Height="36" VerticalContentAlignment="Center" ToolTip="Select input microphone">
+                        <TextBlock Text="{Binding Dropdown2Label}" FontSize="10" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" Margin="0,0,4,0" DockPanel.Dock="Left" />
+                        <ComboBox ItemsSource="{Binding AvailableEndpointDevices}" 
+                                  SelectedItem="{Binding SelectedEndpointDevice, Mode=TwoWay}"
+                                  Height="36" VerticalContentAlignment="Center" ToolTip="Select host audio device for bridge route (Resets to None on IN/OUT switch)">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
                                     <DockPanel LastChildFill="True">

@@ -198,6 +198,24 @@ namespace PhoneMicBridge.Application
             }).ConfigureAwait(false);
         }
 
+        public async Task<IReadOnlyList<BluetoothDeviceDto>> GetBluetoothDevicesAsync()
+        {
+            return await Task.Run<IReadOnlyList<BluetoothDeviceDto>>(() =>
+            {
+                return BluetoothDeviceDiscovery.DiscoverBluetoothDevices();
+            }).ConfigureAwait(false);
+        }
+
+        public bool IsBluetoothRadioEnabled()
+        {
+            return BluetoothDeviceDiscovery.IsBluetoothRadioEnabled();
+        }
+
+        public void OpenBluetoothSettings()
+        {
+            BluetoothDeviceDiscovery.OpenWindowsBluetoothSettings();
+        }
+
         public async Task SelectDevicesAsync(string? captureDeviceId, string? renderDeviceId)
         {
             _selectedCaptureDeviceId = captureDeviceId;

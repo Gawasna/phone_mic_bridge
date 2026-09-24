@@ -24,6 +24,14 @@ namespace PhoneMicBridge.Gui.ViewModels
         private ObservableCollection<AudioDeviceDto> _renderDevices = new();
         private AudioDeviceDto? _selectedCaptureDevice;
         private AudioDeviceDto? _selectedRenderDevice;
+
+        private BridgeRouteMode _routeMode = BridgeRouteMode.In;
+        private ObservableCollection<BluetoothDeviceDto> _bluetoothDevices = new();
+        private BluetoothDeviceDto? _selectedBluetoothDevice;
+        private bool _isBluetoothEnabled = true;
+        private ObservableCollection<AudioDeviceDto> _availableEndpointDevices = new();
+        private AudioDeviceDto? _selectedEndpointDevice;
+
         private static readonly System.Windows.Media.SolidColorBrush MeterGreenBrush = new(System.Windows.Media.Color.FromRgb(0x10, 0xB9, 0x81));
         private static readonly System.Windows.Media.SolidColorBrush MeterAmberBrush = new(System.Windows.Media.Color.FromRgb(0xF5, 0x9E, 0x0B));
         private static readonly System.Windows.Media.SolidColorBrush MeterRedBrush = new(System.Windows.Media.Color.FromRgb(0xEF, 0x44, 0x44));
@@ -128,6 +136,137 @@ namespace PhoneMicBridge.Gui.ViewModels
 
         public string? SelectedCaptureDeviceId => _selectedCaptureDevice?.Id;
         public string? SelectedRenderDeviceId => _selectedRenderDevice?.Id;
+
+        // Bridge Route Mode (IN / OUT Selector)
+        public BridgeRouteMode RouteMode
+        {
+            get => _routeMode;
+            set => SetRouteMode(value);
+        }
+
+        public bool IsRouteIn => _routeMode == BridgeRouteMode.In;
+        public bool IsRouteOut => _routeMode == BridgeRouteMode.Out;
+        public string RouteModeText => _routeMode == BridgeRouteMode.In ? "IN (HOST MIC)" : "OUT (HOST SPK)";
+        public string Dropdown2Label => _routeMode == BridgeRouteMode.In ? "HOST IN:" : "HOST OUT:";
+        public string Dropdown2Placeholder => _routeMode == BridgeRouteMode.In ? "-- Select Input Microphone --" : "-- Select Output Speaker --";
+
+        public void SetRouteMode(BridgeRouteMode mode)
+        {
+            if (_routeMode != mode)
+            {
+                _routeMode = mode;
+                OnPropertyChanged(nameof(RouteMode));
+                OnPropertyChanged(nameof(IsRouteIn));
+                OnPropertyChanged(nameof(IsRouteOut));
+                OnPropertyChanged(nameof(RouteModeText));
+                OnPropertyChanged(nameof(Dropdown2Label));
+                OnPropertyChanged(nameof(Dropdown2Placeholder));
+
+                // Architectural Invariant: "default option mỗi khi chuyển qua lại giữa in out phải đặt về none để tránh gây lỗi"
+                SelectedEndpointDevice = null;
+
+                UpdateAvailableEndpointDevices();
+            }
+        }
+
+        public ICommand SetRouteInCommand { get; }
+        public ICommand SetRouteOutCommand { get; }
+        public ICommand ToggleRouteModeCommand { get; }
+
+        // Bluetooth Device List (Dropdown 1)
+        public ObservableCollection<BluetoothDeviceDto> BluetoothDevices => _bluetoothDevices;
+
+        public BluetoothDeviceDto? SelectedBluetoothDevice
+        {
+            get => _selectedBluetoothDevice;
+            set
+            {
+                if (_selectedBluetoothDevice != value)
+                {
+                    // Gate 5: Selection Guard - reject binding offline or incompatible devices as active bridge target
+                    if (value != null && !value.CanSelectForBridge)
+                    {
+                        return;
+                    }
+
+                    _selectedBluetoothDevice = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(SelectedBluetoothDeviceId));
+                }
+            }
+        }
+
+        public string? SelectedBluetoothDeviceId => _selectedBluetoothDevice?.Id;
+
+        public bool IsBluetoothEnabled
+        {
+            get => _isBluetoothEnabled;
+            private set
+            {
+                if (_isBluetoothEnabled != value)
+                {
+                    _isBluetoothEnabled = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(IsBluetoothDisabled));
+                }
+            }
+        }
+
+        public bool IsBluetoothDisabled => !_isBluetoothEnabled;
+        public bool HasBluetoothDevices => _bluetoothDevices.Count > 0;
+        public bool IsBluetoothEmpty => _bluetoothDevices.Count == 0;
+
+        public ICommand OpenBluetoothSettingsCommand { get; }
+
+        // Adaptive Host Audio Devices (Dropdown 2: IN or OUT depending on RouteMode)
+        public ObservableCollection<AudioDeviceDto> AvailableEndpointDevices => _availableEndpointDevices;
+
+        public AudioDeviceDto? SelectedEndpointDevice
+        {
+            get => _selectedEndpointDevice;
+            set
+            {
+                if (_selectedEndpointDevice != value)
+                {
+                    _selectedEndpointDevice = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(SelectedEndpointDeviceId));
+
+                    if (_routeMode == BridgeRouteMode.In)
+                    {
+                        _selectedCaptureDevice = value;
+                        OnPropertyChanged(nameof(SelectedCaptureDevice));
+                        OnPropertyChanged(nameof(SelectedCaptureDeviceId));
+                    }
+                    else
+                    {
+                        _selectedRenderDevice = value;
+                        OnPropertyChanged(nameof(SelectedRenderDevice));
+                        OnPropertyChanged(nameof(SelectedRenderDeviceId));
+                    }
+
+                    OnDeviceSelectionChanged();
+                }
+            }
+        }
+
+        public string? SelectedEndpointDeviceId => _selectedEndpointDevice?.Id;
+
+        private void UpdateAvailableEndpointDevices()
+        {
+            _availableEndpointDevices.Clear();
+            var sourceList = _routeMode == BridgeRouteMode.In ? _captureDevices : _renderDevices;
+            foreach (var d in sourceList)
+            {
+                // In OUT mode, only present devices that are currently Active to filter out phantom/unplugged drivers
+                if (_routeMode == BridgeRouteMode.Out && !d.IsActive)
+                {
+                    continue;
+                }
+
+                _availableEndpointDevices.Add(d);
+            }
+        }
 
         public bool IsCompactMode
         {
@@ -418,6 +557,11 @@ namespace PhoneMicBridge.Gui.ViewModels
             StopTestAudioCommand = new RelayCommand(StopTestAudio);
             BrowseAudioFileCommand = new AsyncRelayCommand(BrowseAndLoadAudioFileAsync);
 
+            SetRouteInCommand = new RelayCommand(() => SetRouteMode(BridgeRouteMode.In));
+            SetRouteOutCommand = new RelayCommand(() => SetRouteMode(BridgeRouteMode.Out));
+            ToggleRouteModeCommand = new RelayCommand(() => SetRouteMode(_routeMode == BridgeRouteMode.In ? BridgeRouteMode.Out : BridgeRouteMode.In));
+            OpenBluetoothSettingsCommand = new RelayCommand(() => _service.OpenBluetoothSettings());
+
             // 30Hz Meter Polling Timer (33ms) - Zero Heap Allocation in Audio Hot Path
             _meterTimer = new DispatcherTimer(DispatcherPriority.Render)
             {
@@ -470,50 +614,86 @@ namespace PhoneMicBridge.Gui.ViewModels
             }
         }
 
+        private readonly SemaphoreSlim _deviceLoadLock = new(1, 1);
+
         public async Task LoadDevicesAsync()
         {
-            string? prevCaptureId = _selectedCaptureDevice?.Id ?? _snapshot.SelectedCaptureDeviceId;
-            string? prevRenderId = _selectedRenderDevice?.Id ?? _snapshot.SelectedRenderDeviceId;
-
-            var captureList = await _service.GetCaptureDevicesAsync().ConfigureAwait(true);
-            var renderList = await _service.GetRenderDevicesAsync().ConfigureAwait(true);
-
-            _captureDevices.Clear();
-            foreach (var d in captureList) _captureDevices.Add(d);
-
-            _renderDevices.Clear();
-            foreach (var d in renderList) _renderDevices.Add(d);
-
-            // Select capture device by stable ID if previous choice exists; otherwise default/active
-            if (!string.IsNullOrEmpty(prevCaptureId))
+            await _deviceLoadLock.WaitAsync().ConfigureAwait(true);
+            try
             {
-                _selectedCaptureDevice = _captureDevices.FirstOrDefault(c => string.Equals(c.Id, prevCaptureId, StringComparison.OrdinalIgnoreCase));
+                string? prevCaptureId = _selectedCaptureDevice?.Id ?? _snapshot.SelectedCaptureDeviceId;
+                string? prevRenderId = _selectedRenderDevice?.Id ?? _snapshot.SelectedRenderDeviceId;
+
+                var captureList = await _service.GetCaptureDevicesAsync().ConfigureAwait(true);
+                var renderList = await _service.GetRenderDevicesAsync().ConfigureAwait(true);
+                var btList = await _service.GetBluetoothDevicesAsync().ConfigureAwait(true);
+
+                _captureDevices.Clear();
+                foreach (var d in captureList) if (d != null) _captureDevices.Add(d);
+
+                _renderDevices.Clear();
+                foreach (var d in renderList) if (d != null) _renderDevices.Add(d);
+
+                _bluetoothDevices.Clear();
+                foreach (var b in btList) if (b != null) _bluetoothDevices.Add(b);
+
+                IsBluetoothEnabled = _service.IsBluetoothRadioEnabled();
+                OnPropertyChanged(nameof(HasBluetoothDevices));
+                OnPropertyChanged(nameof(IsBluetoothEmpty));
+
+                if (_selectedBluetoothDevice == null || !_bluetoothDevices.Any(b => b != null && b.Id == _selectedBluetoothDevice.Id))
+                {
+                    _selectedBluetoothDevice = _bluetoothDevices.FirstOrDefault(b => b != null && b.IsConnected)
+                                            ?? _bluetoothDevices.FirstOrDefault(b => b != null);
+                    OnPropertyChanged(nameof(SelectedBluetoothDevice));
+                    OnPropertyChanged(nameof(SelectedBluetoothDeviceId));
+                }
+
+                UpdateAvailableEndpointDevices();
+
+                // Select capture device by stable ID if previous choice exists; otherwise default/active
+                if (!string.IsNullOrEmpty(prevCaptureId))
+                {
+                    _selectedCaptureDevice = _captureDevices.FirstOrDefault(c => c != null && string.Equals(c.Id, prevCaptureId, StringComparison.OrdinalIgnoreCase));
+                }
+                if (_selectedCaptureDevice == null)
+                {
+                    _selectedCaptureDevice = _captureDevices.FirstOrDefault(c => c != null && c.IsDefault)
+                                          ?? _captureDevices.FirstOrDefault(c => c != null && c.IsActive);
+                }
+                OnPropertyChanged(nameof(SelectedCaptureDevice));
+                OnPropertyChanged(nameof(SelectedCaptureDeviceId));
+
+                // Select render device by stable ID if previous choice exists; otherwise preferred HFP
+                if (!string.IsNullOrEmpty(prevRenderId))
+                {
+                    _selectedRenderDevice = _renderDevices.FirstOrDefault(r => r != null && string.Equals(r.Id, prevRenderId, StringComparison.OrdinalIgnoreCase));
+                }
+                if (_selectedRenderDevice == null)
+                {
+                    _selectedRenderDevice = _renderDevices.FirstOrDefault(r => r != null && r.IsTargetHfp && r.IsActive)
+                                         ?? _renderDevices.FirstOrDefault(r => r != null && r.IsTargetHfp)
+                                         ?? _renderDevices.FirstOrDefault(r => r != null && r.IsActive);
+                }
+                OnPropertyChanged(nameof(SelectedRenderDevice));
+                OnPropertyChanged(nameof(SelectedRenderDeviceId));
+
+                // Default initial selection for Dropdown 2 if uninitialized
+                if (_selectedEndpointDevice == null)
+                {
+                    _selectedEndpointDevice = _routeMode == BridgeRouteMode.In ? _selectedCaptureDevice : _selectedRenderDevice;
+                    OnPropertyChanged(nameof(SelectedEndpointDevice));
+                    OnPropertyChanged(nameof(SelectedEndpointDeviceId));
+                }
+
+                if (_selectedCaptureDevice != null || _selectedRenderDevice != null)
+                {
+                    await _service.SelectDevicesAsync(_selectedCaptureDevice?.Id, _selectedRenderDevice?.Id).ConfigureAwait(true);
+                }
             }
-            if (_selectedCaptureDevice == null)
+            finally
             {
-                _selectedCaptureDevice = _captureDevices.FirstOrDefault(c => c.IsDefault)
-                                      ?? _captureDevices.FirstOrDefault(c => c.IsActive);
-            }
-            OnPropertyChanged(nameof(SelectedCaptureDevice));
-            OnPropertyChanged(nameof(SelectedCaptureDeviceId));
-
-            // Select render device by stable ID if previous choice exists; otherwise preferred HFP
-            if (!string.IsNullOrEmpty(prevRenderId))
-            {
-                _selectedRenderDevice = _renderDevices.FirstOrDefault(r => string.Equals(r.Id, prevRenderId, StringComparison.OrdinalIgnoreCase));
-            }
-            if (_selectedRenderDevice == null)
-            {
-                _selectedRenderDevice = _renderDevices.FirstOrDefault(r => r.IsTargetHfp && r.IsActive)
-                                     ?? _renderDevices.FirstOrDefault(r => r.IsTargetHfp)
-                                     ?? _renderDevices.FirstOrDefault(r => r.IsActive);
-            }
-            OnPropertyChanged(nameof(SelectedRenderDevice));
-            OnPropertyChanged(nameof(SelectedRenderDeviceId));
-
-            if (_selectedCaptureDevice != null || _selectedRenderDevice != null)
-            {
-                await _service.SelectDevicesAsync(_selectedCaptureDevice?.Id, _selectedRenderDevice?.Id).ConfigureAwait(true);
+                _deviceLoadLock.Release();
             }
         }
 

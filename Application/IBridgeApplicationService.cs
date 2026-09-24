@@ -19,6 +19,9 @@ namespace PhoneMicBridge.Application
         Task<BridgeUiSnapshot> RunPreflightDiagnosticsAsync(CancellationToken cancellationToken = default);
         Task<IReadOnlyList<AudioDeviceDto>> GetCaptureDevicesAsync();
         Task<IReadOnlyList<AudioDeviceDto>> GetRenderDevicesAsync();
+        Task<IReadOnlyList<BluetoothDeviceDto>> GetBluetoothDevicesAsync() => Task.FromResult<IReadOnlyList<BluetoothDeviceDto>>(Array.Empty<BluetoothDeviceDto>());
+        bool IsBluetoothRadioEnabled() => true;
+        void OpenBluetoothSettings() { }
         Task SelectDevicesAsync(string? captureDeviceId, string? renderDeviceId);
 
         Task StartBridgeAsync(CancellationToken cancellationToken = default);
