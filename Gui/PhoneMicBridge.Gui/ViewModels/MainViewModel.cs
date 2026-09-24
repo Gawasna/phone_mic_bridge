@@ -1,53 +1,42 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Threading;
 using PhoneMicBridge.Application;
 using PhoneMicBridge.Core;
 
 namespace PhoneMicBridge.Gui.ViewModels
 {
+    /// <summary>
+    /// Thin UI Orchestrator and Facade for Phone Mic Bridge Desktop GUI.
+    /// Composes specialized coordinators:
+    /// - <see cref="DeviceRouteCoordinator"/>: Route mode, endpoint filtering, PnP device loading.
+    /// - <see cref="AudioMeterMonitor"/>: 30Hz VU meter runtime loop and zero heap allocation.
+    /// - <see cref="AudioSourceController"/>: Microphone, test tone, and audio file player controls.
+    /// Preserves 100% backward compatibility for all XAML data bindings and unit tests (Praise-OOP & OS-Thinking).
+    /// </summary>
     public class MainViewModel : INotifyPropertyChanged, IDisposable
     {
         private readonly IBridgeApplicationService _service;
-        private readonly DispatcherTimer _meterTimer;
+        private readonly DeviceRouteCoordinator _routeCoordinator;
+        private readonly AudioMeterMonitor _meterMonitor;
+        private readonly AudioSourceController _sourceController;
 
         private BridgeUiSnapshot _snapshot;
-        private AudioMeterValues _meterValues = new(0f, 0f, -60.0f, 0f, 0f, -60.0f, false, false);
-
-        private ObservableCollection<AudioDeviceDto> _captureDevices = new();
-        private ObservableCollection<AudioDeviceDto> _renderDevices = new();
-        private AudioDeviceDto? _selectedCaptureDevice;
-        private AudioDeviceDto? _selectedRenderDevice;
-
-        private BridgeRouteMode _routeMode = BridgeRouteMode.In;
-        private ObservableCollection<BluetoothDeviceDto> _bluetoothDevices = new();
-        private BluetoothDeviceDto? _selectedBluetoothDevice;
-        private bool _isBluetoothEnabled = true;
-        private ObservableCollection<AudioDeviceDto> _availableEndpointDevices = new();
-        private AudioDeviceDto? _selectedEndpointDevice;
-
-        private static readonly System.Windows.Media.SolidColorBrush MeterGreenBrush = new(System.Windows.Media.Color.FromRgb(0x10, 0xB9, 0x81));
-        private static readonly System.Windows.Media.SolidColorBrush MeterAmberBrush = new(System.Windows.Media.Color.FromRgb(0xF5, 0x9E, 0x0B));
-        private static readonly System.Windows.Media.SolidColorBrush MeterRedBrush = new(System.Windows.Media.Color.FromRgb(0xEF, 0x44, 0x44));
-
-        static MainViewModel()
-        {
-            MeterGreenBrush.Freeze();
-            MeterAmberBrush.Freeze();
-            MeterRedBrush.Freeze();
-        }
-
         private bool _isCompactMode;
         private bool _isDisposed;
 
         public event PropertyChangedEventHandler? PropertyChanged;
 
+        // Sub-Coordinator Accessors
+        public DeviceRouteCoordinator RouteCoordinator => _routeCoordinator;
+        public AudioMeterMonitor MeterMonitor => _meterMonitor;
+        public AudioSourceController SourceController => _sourceController;
+
+        // Session Snapshot & State
         public BridgeUiSnapshot Snapshot
         {
             get => _snapshot;
@@ -73,210 +62,6 @@ namespace PhoneMicBridge.Gui.ViewModels
 
                     (StartCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
                     (StopCommand as AsyncRelayCommand)?.RaiseCanExecuteChanged();
-                }
-            }
-        }
-
-        public AudioMeterValues MeterValues
-        {
-            get => _meterValues;
-            private set
-            {
-                _meterValues = value;
-                OnPropertyChanged();
-                OnPropertyChanged(nameof(InputPeakPercent));
-                OnPropertyChanged(nameof(InputPeakDbText));
-                OnPropertyChanged(nameof(InputPeakDb));
-                OnPropertyChanged(nameof(InputPeak));
-                OnPropertyChanged(nameof(InputRms));
-                OnPropertyChanged(nameof(OutputPeakPercent));
-                OnPropertyChanged(nameof(OutputPeakDbText));
-                OnPropertyChanged(nameof(OutputPeakDb));
-                OnPropertyChanged(nameof(OutputPeak));
-                OnPropertyChanged(nameof(OutputRms));
-                OnPropertyChanged(nameof(IsInputClipping));
-                OnPropertyChanged(nameof(IsOutputClipping));
-                OnPropertyChanged(nameof(InputMeterBrush));
-                OnPropertyChanged(nameof(OutputMeterBrush));
-            }
-        }
-
-        public ObservableCollection<AudioDeviceDto> CaptureDevices => _captureDevices;
-        public ObservableCollection<AudioDeviceDto> RenderDevices => _renderDevices;
-
-        public AudioDeviceDto? SelectedCaptureDevice
-        {
-            get => _selectedCaptureDevice;
-            set
-            {
-                if (_selectedCaptureDevice != value)
-                {
-                    _selectedCaptureDevice = value;
-                    OnPropertyChanged();
-                    OnPropertyChanged(nameof(SelectedCaptureDeviceId));
-                    OnDeviceSelectionChanged();
-                }
-            }
-        }
-
-        public AudioDeviceDto? SelectedRenderDevice
-        {
-            get => _selectedRenderDevice;
-            set
-            {
-                if (_selectedRenderDevice != value)
-                {
-                    _selectedRenderDevice = value;
-                    OnPropertyChanged();
-                    OnPropertyChanged(nameof(SelectedRenderDeviceId));
-                    OnDeviceSelectionChanged();
-                }
-            }
-        }
-
-        public string? SelectedCaptureDeviceId => _selectedCaptureDevice?.Id;
-        public string? SelectedRenderDeviceId => _selectedRenderDevice?.Id;
-
-        // Bridge Route Mode (IN / OUT Selector)
-        public BridgeRouteMode RouteMode
-        {
-            get => _routeMode;
-            set => SetRouteMode(value);
-        }
-
-        public bool IsRouteIn => _routeMode == BridgeRouteMode.In;
-        public bool IsRouteOut => _routeMode == BridgeRouteMode.Out;
-        public string RouteModeText => _routeMode == BridgeRouteMode.In ? "IN (HOST MIC)" : "OUT (HOST SPK)";
-        public string Dropdown2Label => _routeMode == BridgeRouteMode.In ? "HOST IN:" : "HOST OUT:";
-        public string Dropdown2Placeholder => _routeMode == BridgeRouteMode.In ? "-- Select Input Microphone --" : "-- Select Output Speaker --";
-
-        public void SetRouteMode(BridgeRouteMode mode)
-        {
-            if (_routeMode != mode)
-            {
-                _routeMode = mode;
-                OnPropertyChanged(nameof(RouteMode));
-                OnPropertyChanged(nameof(IsRouteIn));
-                OnPropertyChanged(nameof(IsRouteOut));
-                OnPropertyChanged(nameof(RouteModeText));
-                OnPropertyChanged(nameof(Dropdown2Label));
-                OnPropertyChanged(nameof(Dropdown2Placeholder));
-
-                // Architectural Invariant: "default option mỗi khi chuyển qua lại giữa in out phải đặt về none để tránh gây lỗi"
-                SelectedEndpointDevice = null;
-
-                UpdateAvailableEndpointDevices();
-            }
-        }
-
-        public ICommand SetRouteInCommand { get; }
-        public ICommand SetRouteOutCommand { get; }
-        public ICommand ToggleRouteModeCommand { get; }
-
-        // Bluetooth Device List (Dropdown 1)
-        public ObservableCollection<BluetoothDeviceDto> BluetoothDevices => _bluetoothDevices;
-
-        public BluetoothDeviceDto? SelectedBluetoothDevice
-        {
-            get => _selectedBluetoothDevice;
-            set
-            {
-                if (_selectedBluetoothDevice != value)
-                {
-                    // Gate 5: Selection Guard - reject binding offline or incompatible devices as active bridge target
-                    if (value != null && !value.CanSelectForBridge)
-                    {
-                        return;
-                    }
-
-                    _selectedBluetoothDevice = value;
-                    OnPropertyChanged();
-                    OnPropertyChanged(nameof(SelectedBluetoothDeviceId));
-                }
-            }
-        }
-
-        public string? SelectedBluetoothDeviceId => _selectedBluetoothDevice?.Id;
-
-        public bool IsBluetoothEnabled
-        {
-            get => _isBluetoothEnabled;
-            private set
-            {
-                if (_isBluetoothEnabled != value)
-                {
-                    _isBluetoothEnabled = value;
-                    OnPropertyChanged();
-                    OnPropertyChanged(nameof(IsBluetoothDisabled));
-                }
-            }
-        }
-
-        public bool IsBluetoothDisabled => !_isBluetoothEnabled;
-        public bool HasBluetoothDevices => _bluetoothDevices.Count > 0;
-        public bool IsBluetoothEmpty => _bluetoothDevices.Count == 0;
-
-        public ICommand OpenBluetoothSettingsCommand { get; }
-
-        // Adaptive Host Audio Devices (Dropdown 2: IN or OUT depending on RouteMode)
-        public ObservableCollection<AudioDeviceDto> AvailableEndpointDevices => _availableEndpointDevices;
-
-        public AudioDeviceDto? SelectedEndpointDevice
-        {
-            get => _selectedEndpointDevice;
-            set
-            {
-                if (_selectedEndpointDevice != value)
-                {
-                    _selectedEndpointDevice = value;
-                    OnPropertyChanged();
-                    OnPropertyChanged(nameof(SelectedEndpointDeviceId));
-
-                    if (_routeMode == BridgeRouteMode.In)
-                    {
-                        _selectedCaptureDevice = value;
-                        OnPropertyChanged(nameof(SelectedCaptureDevice));
-                        OnPropertyChanged(nameof(SelectedCaptureDeviceId));
-                    }
-                    else
-                    {
-                        _selectedRenderDevice = value;
-                        OnPropertyChanged(nameof(SelectedRenderDevice));
-                        OnPropertyChanged(nameof(SelectedRenderDeviceId));
-                    }
-
-                    OnDeviceSelectionChanged();
-                }
-            }
-        }
-
-        public string? SelectedEndpointDeviceId => _selectedEndpointDevice?.Id;
-
-        private void UpdateAvailableEndpointDevices()
-        {
-            _availableEndpointDevices.Clear();
-            var sourceList = _routeMode == BridgeRouteMode.In ? _captureDevices : _renderDevices;
-            foreach (var d in sourceList)
-            {
-                // In OUT mode, only present devices that are currently Active to filter out phantom/unplugged drivers
-                if (_routeMode == BridgeRouteMode.Out && !d.IsActive)
-                {
-                    continue;
-                }
-
-                _availableEndpointDevices.Add(d);
-            }
-        }
-
-        public bool IsCompactMode
-        {
-            get => _isCompactMode;
-            set
-            {
-                if (_isCompactMode != value)
-                {
-                    _isCompactMode = value;
-                    OnPropertyChanged();
                 }
             }
         }
@@ -322,7 +107,6 @@ namespace PhoneMicBridge.Gui.ViewModels
             _ => "DISCONNECTED"
         };
 
-        // Truthful Status Display: Always unconfirmed without companion ACK
         public string DeliveryStatusText => _snapshot.DeliveryStatus switch
         {
             DeliveryAckStatus.Confirmed => "CONFIRMED (Delivered to Phone)",
@@ -364,151 +148,195 @@ namespace PhoneMicBridge.Gui.ViewModels
             _ => "SAFETY INTERLOCK: READY (All checks passed)"
         };
 
-        // Audio Meter Helpers (Zero Allocation)
-        public double InputPeakPercent => Math.Clamp(_meterValues.InputPeak * 100.0, 0.0, 100.0);
-        public float InputPeakDb => _meterValues.InputPeakDb;
-        public float InputPeak => _meterValues.InputPeak;
-        public float InputRms => _meterValues.InputRms;
-        public string InputPeakDbText => _meterValues.InputPeakDb <= -59.0f ? "-inf dBFS" : $"{_meterValues.InputPeakDb.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)} dBFS";
-        public bool IsInputClipping => _meterValues.IsInputClipping || _meterValues.InputPeakDb >= -0.1f || _meterValues.InputPeak >= 0.98855f;
-        public System.Windows.Media.Brush InputMeterBrush => IsInputClipping ? MeterRedBrush : (_meterValues.InputPeakDb >= -6.0f ? MeterAmberBrush : MeterGreenBrush);
-
-        public double OutputPeakPercent => Math.Clamp(_meterValues.OutputPeak * 100.0, 0.0, 100.0);
-        public float OutputPeakDb => _meterValues.OutputPeakDb;
-        public float OutputPeak => _meterValues.OutputPeak;
-        public float OutputRms => _meterValues.OutputRms;
-        public string OutputPeakDbText => _meterValues.OutputPeakDb <= -59.0f ? "-inf dBFS" : $"{_meterValues.OutputPeakDb.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)} dBFS";
-        public bool IsOutputClipping => _meterValues.IsOutputClipping || _meterValues.OutputPeakDb >= -0.1f || _meterValues.OutputPeak >= 0.98855f;
-        public System.Windows.Media.Brush OutputMeterBrush => IsOutputClipping ? MeterRedBrush : (_meterValues.OutputPeakDb >= -6.0f ? MeterAmberBrush : MeterGreenBrush);
-
-        public void UpdateMeters()
+        public bool IsCompactMode
         {
-            MeterValues = _service.GetCurrentMeterValues();
-        }
-
-        // Source Controls - Microphone
-        public bool IsMicEnabled
-        {
-            get => _snapshot.IsMicEnabled;
+            get => _isCompactMode;
             set
             {
-                if (_snapshot.IsMicEnabled != value)
+                if (_isCompactMode != value)
                 {
-                    _service.SetMicEnabled(value);
+                    _isCompactMode = value;
+                    OnPropertyChanged();
                 }
             }
+        }
+
+        #region Route & Device Delegations (DeviceRouteCoordinator)
+
+        public ObservableCollection<AudioDeviceDto> CaptureDevices => _routeCoordinator.CaptureDevices;
+        public ObservableCollection<AudioDeviceDto> RenderDevices => _routeCoordinator.RenderDevices;
+        public ObservableCollection<BluetoothDeviceDto> BluetoothDevices => _routeCoordinator.BluetoothDevices;
+        public ObservableCollection<AudioDeviceDto> AvailableEndpointDevices => _routeCoordinator.AvailableEndpointDevices;
+
+        public BridgeRouteMode RouteMode
+        {
+            get => _routeCoordinator.RouteMode;
+            set => _routeCoordinator.RouteMode = value;
+        }
+
+        public bool IsRouteIn => _routeCoordinator.IsRouteIn;
+        public bool IsRouteOut => _routeCoordinator.IsRouteOut;
+        public string RouteModeText => _routeCoordinator.RouteModeText;
+        public string Dropdown2Label => _routeCoordinator.Dropdown2Label;
+        public string Dropdown2Placeholder => _routeCoordinator.Dropdown2Placeholder;
+
+        public void SetRouteMode(BridgeRouteMode mode) => _routeCoordinator.SetRouteMode(mode);
+
+        public AudioDeviceDto? SelectedCaptureDevice
+        {
+            get => _routeCoordinator.SelectedCaptureDevice;
+            set => _routeCoordinator.SelectedCaptureDevice = value;
+        }
+
+        public AudioDeviceDto? SelectedRenderDevice
+        {
+            get => _routeCoordinator.SelectedRenderDevice;
+            set => _routeCoordinator.SelectedRenderDevice = value;
+        }
+
+        public string? SelectedCaptureDeviceId => _routeCoordinator.SelectedCaptureDeviceId;
+        public string? SelectedRenderDeviceId => _routeCoordinator.SelectedRenderDeviceId;
+
+        public AudioDeviceDto? SelectedEndpointDevice
+        {
+            get => _routeCoordinator.SelectedEndpointDevice;
+            set => _routeCoordinator.SelectedEndpointDevice = value;
+        }
+
+        public string? SelectedEndpointDeviceId => _routeCoordinator.SelectedEndpointDeviceId;
+
+        public BluetoothDeviceDto? SelectedBluetoothDevice
+        {
+            get => _routeCoordinator.SelectedBluetoothDevice;
+            set => _routeCoordinator.SelectedBluetoothDevice = value;
+        }
+
+        public string? SelectedBluetoothDeviceId => _routeCoordinator.SelectedBluetoothDeviceId;
+
+        public bool IsBluetoothEnabled => _routeCoordinator.IsBluetoothEnabled;
+        public bool IsBluetoothDisabled => _routeCoordinator.IsBluetoothDisabled;
+        public bool HasBluetoothDevices => _routeCoordinator.HasBluetoothDevices;
+        public bool IsBluetoothEmpty => _routeCoordinator.IsBluetoothEmpty;
+
+        public ICommand SetRouteInCommand => _routeCoordinator.SetRouteInCommand;
+        public ICommand SetRouteOutCommand => _routeCoordinator.SetRouteOutCommand;
+        public ICommand ToggleRouteModeCommand => _routeCoordinator.ToggleRouteModeCommand;
+        public ICommand OpenBluetoothSettingsCommand => _routeCoordinator.OpenBluetoothSettingsCommand;
+
+        public Task LoadDevicesAsync() => _routeCoordinator.LoadDevicesAsync();
+
+        #endregion
+
+        #region Audio VU Meter Delegations (AudioMeterMonitor)
+
+        public AudioMeterValues MeterValues => _meterMonitor.MeterValues;
+        public double InputPeakPercent => _meterMonitor.InputPeakPercent;
+        public float InputPeakDb => _meterMonitor.InputPeakDb;
+        public float InputPeak => _meterMonitor.InputPeak;
+        public float InputRms => _meterMonitor.InputRms;
+        public string InputPeakDbText => _meterMonitor.InputPeakDbText;
+        public bool IsInputClipping => _meterMonitor.IsInputClipping;
+        public System.Windows.Media.Brush InputMeterBrush => _meterMonitor.InputMeterBrush;
+
+        public double OutputPeakPercent => _meterMonitor.OutputPeakPercent;
+        public float OutputPeakDb => _meterMonitor.OutputPeakDb;
+        public float OutputPeak => _meterMonitor.OutputPeak;
+        public float OutputRms => _meterMonitor.OutputRms;
+        public string OutputPeakDbText => _meterMonitor.OutputPeakDbText;
+        public bool IsOutputClipping => _meterMonitor.IsOutputClipping;
+        public System.Windows.Media.Brush OutputMeterBrush => _meterMonitor.OutputMeterBrush;
+
+        public void UpdateMeters() => _meterMonitor.UpdateMeters();
+
+        #endregion
+
+        #region Audio Source Delegations (AudioSourceController)
+
+        public bool IsMicEnabled
+        {
+            get => _sourceController.IsMicEnabled;
+            set => _sourceController.IsMicEnabled = value;
         }
 
         public bool IsMicMuted
         {
-            get => !_snapshot.IsMicEnabled;
-            set
-            {
-                if (_snapshot.IsMicEnabled == value)
-                {
-                    _service.SetMicEnabled(!value);
-                }
-            }
+            get => _sourceController.IsMicMuted;
+            set => _sourceController.IsMicMuted = value;
         }
 
-        public string MicMuteButtonText => IsMicMuted ? "UNMUTE MIC" : "MUTE MIC";
-        public string MicStatusText => IsMicMuted ? "MUTED" : "UNMUTED";
+        public string MicMuteButtonText => _sourceController.MicMuteButtonText;
+        public string MicStatusText => _sourceController.MicStatusText;
 
         public float MicGain
         {
-            get => _snapshot.MicGain;
-            set
-            {
-                if (Math.Abs(_snapshot.MicGain - value) > 0.001f)
-                {
-                    _service.SetMicGain(value);
-                }
-            }
+            get => _sourceController.MicGain;
+            set => _sourceController.MicGain = value;
         }
 
-        public string MicGainText => $"{MicGain.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)}x";
+        public string MicGainText => _sourceController.MicGainText;
 
-        public void ToggleMic() => _service.ToggleMic();
-        public void SetMicMuted(bool muted) => _service.SetMicMuted(muted);
-        public void SetMicEnabled(bool enabled) => _service.SetMicEnabled(enabled);
-        public void SetMicGain(float gain) => _service.SetMicGain(gain);
+        public void ToggleMic() => _sourceController.ToggleMic();
+        public void SetMicMuted(bool muted) => _sourceController.SetMicMuted(muted);
+        public void SetMicEnabled(bool enabled) => _sourceController.SetMicEnabled(enabled);
+        public void SetMicGain(float gain) => _sourceController.SetMicGain(gain);
 
-        // Source Controls - Test Tone Generator
         public bool IsToneEnabled
         {
-            get => _snapshot.IsToneEnabled;
-            set
-            {
-                if (_snapshot.IsToneEnabled != value)
-                {
-                    _service.SetToneEnabled(value, _snapshot.ToneFrequency, _snapshot.ToneGain);
-                }
-            }
+            get => _sourceController.IsToneEnabled;
+            set => _sourceController.IsToneEnabled = value;
         }
 
         public float ToneGain
         {
-            get => _snapshot.ToneGain;
-            set
-            {
-                if (Math.Abs(_snapshot.ToneGain - value) > 0.001f)
-                {
-                    _service.SetToneGain(value);
-                }
-            }
+            get => _sourceController.ToneGain;
+            set => _sourceController.ToneGain = value;
         }
 
-        public string ToneGainText => $"{ToneGain.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)}x";
-        public double ToneFrequency => _snapshot.ToneFrequency;
-        public string ToneStatusText => IsToneEnabled ? "TONE ACTIVE (1000 Hz, -12 dBFS)" : "OFF";
-        public string ToneButtonText => IsToneEnabled ? "STOP TONE" : "START TONE";
+        public string ToneGainText => _sourceController.ToneGainText;
+        public double ToneFrequency => _sourceController.ToneFrequency;
+        public string ToneStatusText => _sourceController.ToneStatusText;
+        public string ToneButtonText => _sourceController.ToneButtonText;
 
-        public void ToggleTestTone() => _service.ToggleTestTone();
-        public void SetToneEnabled(bool enabled) => _service.SetToneEnabled(enabled);
-        public void SetToneGain(float gain) => _service.SetToneGain(gain);
+        public void ToggleTestTone() => _sourceController.ToggleTestTone();
+        public void SetToneEnabled(bool enabled) => _sourceController.SetToneEnabled(enabled);
+        public void SetToneGain(float gain) => _sourceController.SetToneGain(gain);
 
-        // Source Controls - Audio File Player
-        public bool HasAudioFile => _snapshot.HasAudioFile;
-        public bool IsFilePlaying => _snapshot.IsFilePlaying;
-        public string? AudioFileName => _snapshot.AudioFileName;
-        public string? TestAudioFileName => _snapshot.AudioFileName;
-        public string AudioFileStatusText => string.IsNullOrEmpty(_snapshot.AudioFileName)
-            ? "No file loaded"
-            : (_snapshot.IsFilePlaying ? $"Playing: {_snapshot.AudioFileName}" : $"Loaded: {_snapshot.AudioFileName} (Stopped)");
-        public string PlayButtonText => _snapshot.IsFilePlaying ? "STOP AUDIO" : "PLAY AUDIO";
+        public bool HasAudioFile => _sourceController.HasAudioFile;
+        public bool IsFilePlaying => _sourceController.IsFilePlaying;
+        public string? AudioFileName => _sourceController.AudioFileName;
+        public string? TestAudioFileName => _sourceController.TestAudioFileName;
+        public string AudioFileStatusText => _sourceController.AudioFileStatusText;
+        public string PlayButtonText => _sourceController.PlayButtonText;
 
         public float FileGain
         {
-            get => _snapshot.FileGain;
-            set
-            {
-                if (Math.Abs(_snapshot.FileGain - value) > 0.001f)
-                {
-                    _service.SetFileGain(value);
-                }
-            }
+            get => _sourceController.FileGain;
+            set => _sourceController.FileGain = value;
         }
 
-        public string FileGainText => $"{FileGain.ToString("F2", System.Globalization.CultureInfo.InvariantCulture)}x";
+        public string FileGainText => _sourceController.FileGainText;
 
-        public void PlayTestAudio(string filePath) => _service.PlayTestAudio(filePath);
-        public Task<bool> PlayTestAudioAsync(string filePath) => _service.PlayTestAudioAsync(filePath);
-        public void StopTestAudio() => _service.StopTestAudio();
-        public void ToggleFilePlayback() => _service.ToggleFilePlayback();
-        public void SetFileGain(float gain) => _service.SetFileGain(gain);
+        public void PlayTestAudio(string filePath) => _sourceController.PlayTestAudio(filePath);
+        public Task<bool> PlayTestAudioAsync(string filePath) => _sourceController.PlayTestAudioAsync(filePath);
+        public void StopTestAudio() => _sourceController.StopTestAudio();
+        public void ToggleFilePlayback() => _sourceController.ToggleFilePlayback();
+        public void SetFileGain(float gain) => _sourceController.SetFileGain(gain);
 
-        // Commands
+        public ICommand ToggleMicCommand => _sourceController.ToggleMicCommand;
+        public ICommand ToggleTestToneCommand => _sourceController.ToggleTestToneCommand;
+        public ICommand ToggleFilePlaybackCommand => _sourceController.ToggleFilePlaybackCommand;
+        public ICommand PlayTestAudioCommand => _sourceController.PlayTestAudioCommand;
+        public ICommand StopTestAudioCommand => _sourceController.StopTestAudioCommand;
+        public ICommand BrowseAudioFileCommand => _sourceController.BrowseAudioFileCommand;
+
+        #endregion
+
+        // Session & System Commands
         public ICommand StartCommand { get; }
         public ICommand StopCommand { get; }
         public ICommand RunDiagnosticsCommand { get; }
         public ICommand RefreshDevicesCommand { get; }
         public ICommand ClearErrorCommand { get; }
-        public ICommand ToggleMicCommand { get; }
-        public ICommand ToggleTestToneCommand { get; }
-        public ICommand ToggleFilePlaybackCommand { get; }
-        public ICommand PlayTestAudioCommand { get; }
-        public ICommand StopTestAudioCommand { get; }
-        public ICommand BrowseAudioFileCommand { get; }
 
         public MainViewModel() : this(null)
         {
@@ -518,7 +346,16 @@ namespace PhoneMicBridge.Gui.ViewModels
         {
             _service = service ?? new BridgeApplicationService();
             _snapshot = _service.CurrentSnapshot;
-            _meterValues = _service.GetCurrentMeterValues();
+
+            _routeCoordinator = new DeviceRouteCoordinator(_service);
+            _meterMonitor = new AudioMeterMonitor(_service);
+            _sourceController = new AudioSourceController(_service);
+
+            // Bubble up child PropertyChanged notifications for data-binding and test reactivity
+            _routeCoordinator.PropertyChanged += (s, e) => OnPropertyChanged(e.PropertyName);
+            _meterMonitor.PropertyChanged += (s, e) => OnPropertyChanged(e.PropertyName);
+            _sourceController.PropertyChanged += (s, e) => OnPropertyChanged(e.PropertyName);
+
             _service.SnapshotChanged += OnServiceSnapshotChanged;
 
             StartCommand = new AsyncRelayCommand(async () =>
@@ -550,55 +387,8 @@ namespace PhoneMicBridge.Gui.ViewModels
                 _service.ClearError();
             });
 
-            ToggleMicCommand = new RelayCommand(ToggleMic);
-            ToggleTestToneCommand = new RelayCommand(ToggleTestTone);
-            ToggleFilePlaybackCommand = new RelayCommand(ToggleFilePlayback);
-            PlayTestAudioCommand = new AsyncRelayCommand(PlayOrToggleAudioFileAsync);
-            StopTestAudioCommand = new RelayCommand(StopTestAudio);
-            BrowseAudioFileCommand = new AsyncRelayCommand(BrowseAndLoadAudioFileAsync);
-
-            SetRouteInCommand = new RelayCommand(() => SetRouteMode(BridgeRouteMode.In));
-            SetRouteOutCommand = new RelayCommand(() => SetRouteMode(BridgeRouteMode.Out));
-            ToggleRouteModeCommand = new RelayCommand(() => SetRouteMode(_routeMode == BridgeRouteMode.In ? BridgeRouteMode.Out : BridgeRouteMode.In));
-            OpenBluetoothSettingsCommand = new RelayCommand(() => _service.OpenBluetoothSettings());
-
-            // 30Hz Meter Polling Timer (33ms) - Zero Heap Allocation in Audio Hot Path
-            _meterTimer = new DispatcherTimer(DispatcherPriority.Render)
-            {
-                Interval = TimeSpan.FromMilliseconds(33)
-            };
-            _meterTimer.Tick += OnMeterTimerTick;
-            _meterTimer.Start();
-
             // Initial load with safe try/catch
             _ = InitializeAsync();
-        }
-
-        private async Task PlayOrToggleAudioFileAsync()
-        {
-            if (!_snapshot.HasAudioFile)
-            {
-                await BrowseAndLoadAudioFileAsync().ConfigureAwait(true);
-            }
-            else
-            {
-                _service.ToggleFilePlayback();
-            }
-        }
-
-        private async Task BrowseAndLoadAudioFileAsync()
-        {
-            var dialog = new Microsoft.Win32.OpenFileDialog
-            {
-                Title = "Select Audio File for Bridge Playback",
-                Filter = "Audio Files (*.wav;*.mp3)|*.wav;*.mp3|All Files (*.*)|*.*",
-                CheckFileExists = true
-            };
-
-            if (dialog.ShowDialog() == true)
-            {
-                await _service.LoadAudioFileAsync(dialog.FileName).ConfigureAwait(true);
-            }
         }
 
         private async Task InitializeAsync()
@@ -612,109 +402,6 @@ namespace PhoneMicBridge.Gui.ViewModels
             {
                 System.Diagnostics.Debug.WriteLine($"Initialization error: {ex.Message}");
             }
-        }
-
-        private readonly SemaphoreSlim _deviceLoadLock = new(1, 1);
-
-        public async Task LoadDevicesAsync()
-        {
-            await _deviceLoadLock.WaitAsync().ConfigureAwait(true);
-            try
-            {
-                string? prevCaptureId = _selectedCaptureDevice?.Id ?? _snapshot.SelectedCaptureDeviceId;
-                string? prevRenderId = _selectedRenderDevice?.Id ?? _snapshot.SelectedRenderDeviceId;
-
-                var captureList = await _service.GetCaptureDevicesAsync().ConfigureAwait(true);
-                var renderList = await _service.GetRenderDevicesAsync().ConfigureAwait(true);
-                var btList = await _service.GetBluetoothDevicesAsync().ConfigureAwait(true);
-
-                _captureDevices.Clear();
-                foreach (var d in captureList) if (d != null) _captureDevices.Add(d);
-
-                _renderDevices.Clear();
-                foreach (var d in renderList) if (d != null) _renderDevices.Add(d);
-
-                _bluetoothDevices.Clear();
-                foreach (var b in btList) if (b != null) _bluetoothDevices.Add(b);
-
-                IsBluetoothEnabled = _service.IsBluetoothRadioEnabled();
-                OnPropertyChanged(nameof(HasBluetoothDevices));
-                OnPropertyChanged(nameof(IsBluetoothEmpty));
-
-                if (_selectedBluetoothDevice == null || !_bluetoothDevices.Any(b => b != null && b.Id == _selectedBluetoothDevice.Id))
-                {
-                    _selectedBluetoothDevice = _bluetoothDevices.FirstOrDefault(b => b != null && b.IsConnected)
-                                            ?? _bluetoothDevices.FirstOrDefault(b => b != null);
-                    OnPropertyChanged(nameof(SelectedBluetoothDevice));
-                    OnPropertyChanged(nameof(SelectedBluetoothDeviceId));
-                }
-
-                UpdateAvailableEndpointDevices();
-
-                // Select capture device by stable ID if previous choice exists; otherwise default/active
-                if (!string.IsNullOrEmpty(prevCaptureId))
-                {
-                    _selectedCaptureDevice = _captureDevices.FirstOrDefault(c => c != null && string.Equals(c.Id, prevCaptureId, StringComparison.OrdinalIgnoreCase));
-                }
-                if (_selectedCaptureDevice == null)
-                {
-                    _selectedCaptureDevice = _captureDevices.FirstOrDefault(c => c != null && c.IsDefault)
-                                          ?? _captureDevices.FirstOrDefault(c => c != null && c.IsActive);
-                }
-                OnPropertyChanged(nameof(SelectedCaptureDevice));
-                OnPropertyChanged(nameof(SelectedCaptureDeviceId));
-
-                // Select render device by stable ID if previous choice exists; otherwise preferred HFP
-                if (!string.IsNullOrEmpty(prevRenderId))
-                {
-                    _selectedRenderDevice = _renderDevices.FirstOrDefault(r => r != null && string.Equals(r.Id, prevRenderId, StringComparison.OrdinalIgnoreCase));
-                }
-                if (_selectedRenderDevice == null)
-                {
-                    _selectedRenderDevice = _renderDevices.FirstOrDefault(r => r != null && r.IsTargetHfp && r.IsActive)
-                                         ?? _renderDevices.FirstOrDefault(r => r != null && r.IsTargetHfp)
-                                         ?? _renderDevices.FirstOrDefault(r => r != null && r.IsActive);
-                }
-                OnPropertyChanged(nameof(SelectedRenderDevice));
-                OnPropertyChanged(nameof(SelectedRenderDeviceId));
-
-                // Default initial selection for Dropdown 2 if uninitialized
-                if (_selectedEndpointDevice == null)
-                {
-                    _selectedEndpointDevice = _routeMode == BridgeRouteMode.In ? _selectedCaptureDevice : _selectedRenderDevice;
-                    OnPropertyChanged(nameof(SelectedEndpointDevice));
-                    OnPropertyChanged(nameof(SelectedEndpointDeviceId));
-                }
-
-                if (_selectedCaptureDevice != null || _selectedRenderDevice != null)
-                {
-                    await _service.SelectDevicesAsync(_selectedCaptureDevice?.Id, _selectedRenderDevice?.Id).ConfigureAwait(true);
-                }
-            }
-            finally
-            {
-                _deviceLoadLock.Release();
-            }
-        }
-
-        private void OnDeviceSelectionChanged()
-        {
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    await _service.SelectDevicesAsync(_selectedCaptureDevice?.Id, _selectedRenderDevice?.Id).ConfigureAwait(false);
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Device selection error: {ex.Message}");
-                }
-            });
-        }
-
-        private void OnMeterTimerTick(object? sender, EventArgs e)
-        {
-            UpdateMeters();
         }
 
         private void OnServiceSnapshotChanged(object? sender, BridgeUiSnapshot snapshot)
@@ -733,28 +420,7 @@ namespace PhoneMicBridge.Gui.ViewModels
         private void ApplySnapshot(BridgeUiSnapshot snapshot)
         {
             Snapshot = snapshot;
-            OnPropertyChanged(nameof(IsMicEnabled));
-            OnPropertyChanged(nameof(IsMicMuted));
-            OnPropertyChanged(nameof(MicMuteButtonText));
-            OnPropertyChanged(nameof(MicStatusText));
-            OnPropertyChanged(nameof(MicGain));
-            OnPropertyChanged(nameof(MicGainText));
-
-            OnPropertyChanged(nameof(IsToneEnabled));
-            OnPropertyChanged(nameof(ToneGain));
-            OnPropertyChanged(nameof(ToneGainText));
-            OnPropertyChanged(nameof(ToneFrequency));
-            OnPropertyChanged(nameof(ToneStatusText));
-            OnPropertyChanged(nameof(ToneButtonText));
-
-            OnPropertyChanged(nameof(HasAudioFile));
-            OnPropertyChanged(nameof(IsFilePlaying));
-            OnPropertyChanged(nameof(AudioFileName));
-            OnPropertyChanged(nameof(TestAudioFileName));
-            OnPropertyChanged(nameof(AudioFileStatusText));
-            OnPropertyChanged(nameof(PlayButtonText));
-            OnPropertyChanged(nameof(FileGain));
-            OnPropertyChanged(nameof(FileGainText));
+            _sourceController.ApplySnapshot(snapshot);
         }
 
         protected void OnPropertyChanged([CallerMemberName] string? name = null)
@@ -767,7 +433,8 @@ namespace PhoneMicBridge.Gui.ViewModels
             if (_isDisposed) return;
             _isDisposed = true;
 
-            _meterTimer.Stop();
+            _meterMonitor.Dispose();
+            _routeCoordinator.Dispose();
             _service.SnapshotChanged -= OnServiceSnapshotChanged;
             _service.Dispose();
         }
