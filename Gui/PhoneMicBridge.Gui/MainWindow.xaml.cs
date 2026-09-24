@@ -2,7 +2,6 @@ using System;
 using System.ComponentModel;
 using System.Globalization;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Data;
 using PhoneMicBridge.Gui.ViewModels;
 
@@ -30,69 +29,27 @@ namespace PhoneMicBridge.Gui
 
     /// <summary>
     /// Interaction logic for MainWindow.xaml.
-    /// Manages responsive adaptive layout between Compact Utility Window (<680px)
-    /// and Wide Engineering Dashboard (>=680px) without animation delays.
+    /// Uses native OS chrome with custom window title matching REVIEW-UX-001 specifications.
     /// </summary>
     public partial class MainWindow : Window
     {
-        private bool _isSingleColumn;
-
         public MainWindow()
         {
             InitializeComponent();
         }
 
-        private void OnWindowSizeChanged(object sender, SizeChangedEventArgs e)
+        private void EngineSpecsButton_Click(object sender, RoutedEventArgs e)
         {
-            if (AdaptiveGrid == null || LeftPanel == null || RightPanel == null)
-            {
-                return;
-            }
-
-            if (e.NewSize.Width < 680 && !_isSingleColumn)
-            {
-                _isSingleColumn = true;
-
-                AdaptiveGrid.ColumnDefinitions.Clear();
-                AdaptiveGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-
-                AdaptiveGrid.RowDefinitions.Clear();
-                AdaptiveGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-                AdaptiveGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-
-                Grid.SetColumn(LeftPanel, 0);
-                Grid.SetRow(LeftPanel, 0);
-
-                Grid.SetColumn(RightPanel, 0);
-                Grid.SetRow(RightPanel, 1);
-
-                if (DataContext is MainViewModel vm)
-                {
-                    vm.IsCompactMode = true;
-                }
-            }
-            else if (e.NewSize.Width >= 680 && _isSingleColumn)
-            {
-                _isSingleColumn = false;
-
-                AdaptiveGrid.ColumnDefinitions.Clear();
-                AdaptiveGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-                AdaptiveGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-
-                AdaptiveGrid.RowDefinitions.Clear();
-                AdaptiveGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-
-                Grid.SetColumn(LeftPanel, 0);
-                Grid.SetRow(LeftPanel, 0);
-
-                Grid.SetColumn(RightPanel, 1);
-                Grid.SetRow(RightPanel, 0);
-
-                if (DataContext is MainViewModel vm)
-                {
-                    vm.IsCompactMode = false;
-                }
-            }
+            MessageBox.Show(
+                "Phone Mic Bridge Engine v0.0.1 Technical Specs:\n\n" +
+                "• Target Transport: Bluetooth HFP / SCO Channel (16 kHz, 16-bit Mono)\n" +
+                "• WASAPI Mode: Shared / Event-driven Render Endpoint\n" +
+                "• Buffer Architecture: Zero-Allocation Lock-Free RingBuffer (~20ms latency)\n" +
+                "• Resampler: Linear Phase Low-Latency Resampler\n" +
+                "• Truthful Status: 3-Tier Independent Endpoint & Transport Verification",
+                "Engine Technical Specifications",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
         }
 
         protected override void OnClosing(CancelEventArgs e)

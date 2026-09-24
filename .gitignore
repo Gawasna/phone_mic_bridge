@@ -38,9 +38,13 @@ NEXT_DIRECTION.md
 HANDOFF.md
 *HANDOFF*
 TRACE.md
-.agents/
+PROJECT.md
+.agents/*
 *.md
 !README.md
+!.agents/rules/*.md
+!.agents/skills/**
+!.agents/workflows/*.md
 
 # Android build artifacts & cache
 android/.gradle/
