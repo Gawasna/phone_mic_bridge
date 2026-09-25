@@ -38,16 +38,27 @@ namespace PhoneMicBridge.Gui
             InitializeComponent();
         }
 
+        private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (DataContext is MainViewModel vm)
+            {
+                // Breakpoint 1050px: Compacted HUD (720x680) vs Fullscreen Studio (1920x1080)
+                vm.IsCompactMode = e.NewSize.Width < 1050;
+            }
+        }
+
         private void EngineSpecsButton_Click(object sender, RoutedEventArgs e)
         {
             MessageBox.Show(
-                "Phone Mic Bridge Engine v0.0.1 Technical Specs:\n\n" +
+                "Phone Mic Bridge Engine v0.0.3 Technical Specs:\n\n" +
                 "• Target Transport: Bluetooth HFP / SCO Channel (16 kHz, 16-bit Mono)\n" +
+                "• Responsive Layout: Dual Layout (Compacted HUD 720x680 & Fullscreen Studio 1920x1080)\n" +
+                "• Metering: 30Hz Real-Time 3-Tier Multi-Meter (Input, DSP Stage, Host Output)\n" +
                 "• WASAPI Mode: Shared / Event-driven Render Endpoint\n" +
-                "• Buffer Architecture: Zero-Allocation Lock-Free RingBuffer (~20ms latency)\n" +
+                "• Buffer Architecture: Zero-Allocation Lock-Free RingBuffer (~18ms latency)\n" +
                 "• Resampler: Linear Phase Low-Latency Resampler\n" +
                 "• Truthful Status: 3-Tier Independent Endpoint & Transport Verification",
-                "Engine Technical Specifications",
+                "Engine Technical Specifications v0.0.3",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information);
         }

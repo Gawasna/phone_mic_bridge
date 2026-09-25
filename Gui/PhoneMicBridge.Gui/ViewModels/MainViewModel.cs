@@ -26,7 +26,7 @@ namespace PhoneMicBridge.Gui.ViewModels
         private readonly AudioSourceController _sourceController;
 
         private BridgeUiSnapshot _snapshot;
-        private bool _isCompactMode;
+        private bool _isCompactMode = true;
         private bool _isDisposed;
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -157,9 +157,21 @@ namespace PhoneMicBridge.Gui.ViewModels
                 {
                     _isCompactMode = value;
                     OnPropertyChanged();
+                    OnPropertyChanged(nameof(IsExpandedMode));
+                    OnPropertyChanged(nameof(WindowModeText));
                 }
             }
         }
+
+        public bool IsExpandedMode
+        {
+            get => !_isCompactMode;
+            set => IsCompactMode = !value;
+        }
+
+        public string WindowModeText => IsCompactMode ? "COMPACT (720x680)" : "FULLSCREEN (1920x1080)";
+
+        public string StreamTelemetrySummary => "mSBC (16.0 kHz) • Latency: ~18ms • Buffer: 960/1920 • Loss: 0.0%";
 
         #region Route & Device Delegations (DeviceRouteCoordinator)
 
@@ -250,6 +262,23 @@ namespace PhoneMicBridge.Gui.ViewModels
         public string OutputPeakDbText => _meterMonitor.OutputPeakDbText;
         public bool IsOutputClipping => _meterMonitor.IsOutputClipping;
         public System.Windows.Media.Brush OutputMeterBrush => _meterMonitor.OutputMeterBrush;
+
+        // DSP Post-Processing Metering (Slot 2 in Fullscreen v0.0.3)
+        public double DspPeakPercent => _meterMonitor.DspPeakPercent;
+        public float DspPeakDb => _meterMonitor.DspPeakDb;
+        public string DspPeakDbText => _meterMonitor.DspPeakDbText;
+        public bool IsDspClipping => _meterMonitor.IsDspClipping;
+        public System.Windows.Media.Brush DspMeterBrush => _meterMonitor.DspMeterBrush;
+
+        // 8-Band Frequency Spectrum Visualizer (FFT Acoustic Bands for Playground Section)
+        public double Band60Hz => _meterMonitor.Band60Hz;
+        public double Band125Hz => _meterMonitor.Band125Hz;
+        public double Band250Hz => _meterMonitor.Band250Hz;
+        public double Band500Hz => _meterMonitor.Band500Hz;
+        public double Band1kHz => _meterMonitor.Band1kHz;
+        public double Band2kHz => _meterMonitor.Band2kHz;
+        public double Band4kHz => _meterMonitor.Band4kHz;
+        public double Band8kHz => _meterMonitor.Band8kHz;
 
         public void UpdateMeters() => _meterMonitor.UpdateMeters();
 

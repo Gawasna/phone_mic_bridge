@@ -338,5 +338,55 @@ namespace PhoneMicBridge.Tests
             toggleLimiter.Execute(null);
             Assert.False(GetProp<bool>(vm, "IsLimiterEnabled"));
         }
+
+        [Fact]
+        public void MainViewModel_WindowModeAdaptation_UpdatesExpandedAndModeText()
+        {
+            var service = new StubBridgeService();
+            var vm = CreateInstance("PhoneMicBridge.Gui.ViewModels.MainViewModel", service);
+
+            // Default is Compact mode
+            Assert.True(GetProp<bool>(vm, "IsCompactMode"));
+            Assert.False(GetProp<bool>(vm, "IsExpandedMode"));
+            Assert.Equal("COMPACT (720x680)", GetProp<string>(vm, "WindowModeText"));
+
+            // Switch to Expanded mode
+            SetProp(vm, "IsCompactMode", false);
+            Assert.False(GetProp<bool>(vm, "IsCompactMode"));
+            Assert.True(GetProp<bool>(vm, "IsExpandedMode"));
+            Assert.Equal("FULLSCREEN (1920x1080)", GetProp<string>(vm, "WindowModeText"));
+
+            // Verify telemetry summary is non-empty
+            var telemetry = GetProp<string>(vm, "StreamTelemetrySummary");
+            Assert.False(string.IsNullOrWhiteSpace(telemetry));
+            Assert.Contains("mSBC (16.0 kHz)", telemetry);
+        }
+
+        [Fact]
+        public void AudioMeterMonitor_DspAndSpectrum_PropertiesExposeValidValues()
+        {
+            var service = new StubBridgeService();
+            var vm = CreateInstance("PhoneMicBridge.Gui.ViewModels.MainViewModel", service);
+
+            // Verify DSP meter default state
+            var dspPercent = GetProp<double>(vm, "DspPeakPercent");
+            var dspDbText = GetProp<string>(vm, "DspPeakDbText");
+            var isDspClipping = GetProp<bool>(vm, "IsDspClipping");
+
+            Assert.True(dspPercent >= 0.0);
+            Assert.False(string.IsNullOrWhiteSpace(dspDbText));
+            Assert.False(isDspClipping);
+
+            // Verify 8-band FFT spectrum initial values
+            Assert.True(GetProp<double>(vm, "Band60Hz") >= 0.0);
+            Assert.True(GetProp<double>(vm, "Band125Hz") >= 0.0);
+            Assert.True(GetProp<double>(vm, "Band250Hz") >= 0.0);
+            Assert.True(GetProp<double>(vm, "Band500Hz") >= 0.0);
+            Assert.True(GetProp<double>(vm, "Band1kHz") >= 0.0);
+            Assert.True(GetProp<double>(vm, "Band2kHz") >= 0.0);
+            Assert.True(GetProp<double>(vm, "Band4kHz") >= 0.0);
+            Assert.True(GetProp<double>(vm, "Band8kHz") >= 0.0);
+        }
     }
 }
+
