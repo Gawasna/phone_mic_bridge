@@ -19,9 +19,9 @@ namespace PhoneMicBridge.Gui.ViewModels
         private AudioMeterValues _meterValues = new(0f, 0f, -60.0f, 0f, 0f, -60.0f, false, false);
         private bool _isDisposed;
 
-        private static readonly SolidColorBrush MeterGreenBrush = new(Color.FromRgb(0x10, 0xB9, 0x81));
-        private static readonly SolidColorBrush MeterAmberBrush = new(Color.FromRgb(0xF5, 0x9E, 0x0B));
-        private static readonly SolidColorBrush MeterRedBrush = new(Color.FromRgb(0xEF, 0x44, 0x44));
+        private static readonly SolidColorBrush MeterGreenBrush = new(Color.FromRgb(0x16, 0xA3, 0x4A));
+        private static readonly SolidColorBrush MeterAmberBrush = new(Color.FromRgb(0xD9, 0x77, 0x06));
+        private static readonly SolidColorBrush MeterRedBrush = new(Color.FromRgb(0xDC, 0x26, 0x26));
 
         static AudioMeterMonitor()
         {

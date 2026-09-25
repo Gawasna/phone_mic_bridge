@@ -27,27 +27,29 @@
         <conv:BooleanToVisibilityConverter x:Key="BoolToVisConv" />
         <gui:StatusToRemediationVisibilityConverter x:Key="StatusToRemediationVisConv" />
 
-        <!-- Accent Brushes (Pro Audio Studio Dark Palette) -->
-        <SolidColorBrush x:Key="TechGreenBrush" Color="#10B981" />
-        <SolidColorBrush x:Key="TechGreenBgBrush" Color="#064E3B" />
-        <SolidColorBrush x:Key="TechGreenBorderBrush" Color="#059669" />
-        <SolidColorBrush x:Key="TechAmberBrush" Color="#F59E0B" />
-        <SolidColorBrush x:Key="TechAmberBgBrush" Color="#451A03" />
-        <SolidColorBrush x:Key="TechAmberBorderBrush" Color="#D97706" />
-        <SolidColorBrush x:Key="TechRedBrush" Color="#EF4444" />
-        <SolidColorBrush x:Key="TechRedBgBrush" Color="#450A0A" />
-        <SolidColorBrush x:Key="TechRedBorderBrush" Color="#DC2626" />
-        <SolidColorBrush x:Key="TechCyanBrush" Color="#06B6D4" />
-        <SolidColorBrush x:Key="TechCyanBgBrush" Color="#083344" />
-        <SolidColorBrush x:Key="TechCyanBorderBrush" Color="#0E7490" />
-        <SolidColorBrush x:Key="TechPinkBrush" Color="#EC4899" />
-        <SolidColorBrush x:Key="TechPinkBgBrush" Color="#500724" />
-        <SolidColorBrush x:Key="TechPinkBorderBrush" Color="#DB2777" />
-        <SolidColorBrush x:Key="TechMeterTrackBrush" Color="#1E293B" />
-        <SolidColorBrush x:Key="ToolbarBgBrush" Color="#0B0F19" />
-        <SolidColorBrush x:Key="SubToolbarBgBrush" Color="#0F172A" />
-        <SolidColorBrush x:Key="DarkBorderBrush" Color="#1E293B" />
-        <SolidColorBrush x:Key="TerminalBgBrush" Color="#030712" />
+        <!-- Accent Brushes (Honest Light Theme Engineering Palette) -->
+        <SolidColorBrush x:Key="TechGreenBrush" Color="#15803D" />
+        <SolidColorBrush x:Key="TechGreenBgBrush" Color="#DCFCE7" />
+        <SolidColorBrush x:Key="TechGreenBorderBrush" Color="#86EFAC" />
+        <SolidColorBrush x:Key="TechAmberBrush" Color="#B45309" />
+        <SolidColorBrush x:Key="TechAmberBgBrush" Color="#FEF3C7" />
+        <SolidColorBrush x:Key="TechAmberBorderBrush" Color="#FDE68A" />
+        <SolidColorBrush x:Key="TechRedBrush" Color="#B91C1C" />
+        <SolidColorBrush x:Key="TechRedBgBrush" Color="#FEE2E2" />
+        <SolidColorBrush x:Key="TechRedBorderBrush" Color="#FCA5A5" />
+        <!-- Client Section Pastel Cyan (Wireframe v0.0.2 #B9FFFD) -->
+        <SolidColorBrush x:Key="TechCyanBrush" Color="#0F766E" />
+        <SolidColorBrush x:Key="TechCyanBgBrush" Color="#F0FDFA" />
+        <SolidColorBrush x:Key="TechCyanBorderBrush" Color="#99F6E4" />
+        <!-- Devices Section Pastel Pink (Wireframe v0.0.2 #FFC8C8) -->
+        <SolidColorBrush x:Key="TechPinkBrush" Color="#BE123C" />
+        <SolidColorBrush x:Key="TechPinkBgBrush" Color="#FFF1F2" />
+        <SolidColorBrush x:Key="TechPinkBorderBrush" Color="#FECDD3" />
+        <SolidColorBrush x:Key="TechMeterTrackBrush" Color="#E5E7EB" />
+        <SolidColorBrush x:Key="ToolbarBgBrush" Color="#FFFFFF" />
+        <SolidColorBrush x:Key="SubToolbarBgBrush" Color="#F8FAFC" />
+        <SolidColorBrush x:Key="DarkBorderBrush" Color="#CBD5E1" />
+        <SolidColorBrush x:Key="TerminalBgBrush" Color="#F8FAFC" />
 
         <!-- Engineering Progress Bar Style (VU Meter Gradient) -->
         <Style x:Key="EngineeringProgressBar" TargetType="ProgressBar">
@@ -101,14 +103,14 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bd" Property="Background" Value="#1E293B" />
+                                <Setter TargetName="bd" Property="Background" Value="#F3F4F6" />
                                 <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource BorderDarkBrush}" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="bd" Property="Background" Value="#0F172A" />
+                                <Setter TargetName="bd" Property="Background" Value="#E5E7EB" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="bd" Property="Background" Value="#0B0F19" />
+                                <Setter TargetName="bd" Property="Background" Value="#F8F9FA" />
                                 <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource BorderSubtleBrush}" />
                                 <Setter Property="Foreground" Value="{StaticResource TextDisabledBrush}" />
                             </Trigger>
@@ -137,7 +139,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bd" Property="BorderBrush" Value="#38BDF8" />
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#0284C7" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="bd" Property="Opacity" Value="0.8" />
@@ -172,6 +174,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#E5E7EB" />
                                 <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource BorderDarkBrush}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
@@ -207,7 +210,7 @@
                     <!-- Diagnostics -->
                     <Button Style="{StaticResource ToolbarButton}" Command="{Binding RunDiagnosticsCommand}" Margin="0,0,6,0" ToolTip="Run hardware pre-flight checks">
                         <StackPanel Orientation="Horizontal">
-                            <Path Data="M 1 7 H 4 L 7 1 L 10 13 L 13 4 L 15 7 H 18" Stroke="#38BDF8" StrokeThickness="1.5" Width="14" Height="12" Margin="0,0,5,0" VerticalAlignment="Center" />
+                            <Path Data="M 1 7 H 4 L 7 1 L 10 13 L 13 4 L 15 7 H 18" Stroke="#0284C7" StrokeThickness="1.5" Width="14" Height="12" Margin="0,0,5,0" VerticalAlignment="Center" />
                             <TextBlock Text="Diagnostics" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
@@ -215,7 +218,7 @@
                     <!-- Scan Devices -->
                     <Button Style="{StaticResource ToolbarButton}" Command="{Binding RefreshDevicesCommand}" Margin="0,0,6,0" ToolTip="Enumerate active Bluetooth &amp; WASAPI endpoints">
                         <StackPanel Orientation="Horizontal">
-                            <Path Data="M 13.5 4.5 A 6 6 0 1 0 15 9 M 15 4 V 8 H 11" Stroke="#34D399" StrokeThickness="1.4" Width="13" Height="12" Margin="0,0,5,0" VerticalAlignment="Center" />
+                            <Path Data="M 13.5 4.5 A 6 6 0 1 0 15 9 M 15 4 V 8 H 11" Stroke="#16A34A" StrokeThickness="1.4" Width="13" Height="12" Margin="0,0,5,0" VerticalAlignment="Center" />
                             <TextBlock Text="Scan Devices" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
@@ -223,7 +226,7 @@
                     <!-- Clear Error -->
                     <Button Style="{StaticResource ToolbarButton}" Command="{Binding ClearErrorCommand}" IsEnabled="{Binding HasError}" Margin="0,0,6,0" ToolTip="Dismiss current error condition">
                         <StackPanel Orientation="Horizontal">
-                            <Path Data="M 4 5 H 12 M 5 5 V 13 H 11 V 5 M 7 3 H 9" Stroke="#F87171" StrokeThickness="1.3" Width="12" Height="12" Margin="0,0,5,0" VerticalAlignment="Center" />
+                            <Path Data="M 4 5 H 12 M 5 5 V 13 H 11 V 5 M 7 3 H 9" Stroke="#DC2626" StrokeThickness="1.3" Width="12" Height="12" Margin="0,0,5,0" VerticalAlignment="Center" />
                             <TextBlock Text="Clear Error" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
@@ -231,7 +234,7 @@
                     <!-- Load Audio File -->
                     <Button Style="{StaticResource ToolbarButton}" Command="{Binding BrowseAudioFileCommand}" Margin="0,0,6,0" ToolTip="Select WAV/MP3 file for test playback">
                         <StackPanel Orientation="Horizontal">
-                            <Path Data="M 2 3 H 6 L 8 5 H 14 V 12 H 2 Z" Stroke="#FBBF24" StrokeThickness="1.3" Fill="Transparent" Width="13" Height="12" Margin="0,0,5,0" VerticalAlignment="Center" />
+                            <Path Data="M 2 3 H 6 L 8 5 H 14 V 12 H 2 Z" Stroke="#D97706" StrokeThickness="1.3" Fill="Transparent" Width="13" Height="12" Margin="0,0,5,0" VerticalAlignment="Center" />
                             <TextBlock Text="Load Audio" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
@@ -239,7 +242,7 @@
                     <!-- Engine Specs -->
                     <Button Style="{StaticResource ToolbarButton}" Click="EngineSpecsButton_Click" ToolTip="View engine transport specifications">
                         <StackPanel Orientation="Horizontal">
-                            <Path Data="M 7 2 A 5 5 0 1 0 7 12 A 5 5 0 1 0 7 2 M 7 5 V 8 M 7 10 V 10.5" Stroke="#94A3B8" StrokeThickness="1.4" Width="13" Height="12" Margin="0,0,5,0" VerticalAlignment="Center" />
+                            <Path Data="M 7 2 A 5 5 0 1 0 7 12 A 5 5 0 1 0 7 2 M 7 5 V 8 M 7 10 V 10.5" Stroke="#6B7280" StrokeThickness="1.4" Width="13" Height="12" Margin="0,0,5,0" VerticalAlignment="Center" />
                             <TextBlock Text="Specs" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" />
                         </StackPanel>
                     </Button>
@@ -247,8 +250,8 @@
 
                 <!-- Right: Audio Engine Sampling Rate & Session State Badge -->
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
-                    <Border Background="#1E293B" BorderBrush="#334155" BorderThickness="1" CornerRadius="2" Padding="6,2" Margin="0,0,8,0">
-                        <TextBlock Text="16.0 kHz • 16-bit Mono" FontSize="9" FontFamily="Consolas, monospace" FontWeight="Bold" Foreground="#38BDF8" VerticalAlignment="Center" />
+                    <Border Background="#F1F5F9" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="2" Padding="6,2" Margin="0,0,8,0">
+                        <TextBlock Text="16.0 kHz • 16-bit Mono" FontSize="9" FontFamily="Consolas, monospace" FontWeight="Bold" Foreground="#0369A1" VerticalAlignment="Center" />
                     </Border>
                     <Border Background="{Binding Snapshot.State, Converter={StaticResource StatusBgConv}}"
                             BorderBrush="{Binding Snapshot.State, Converter={StaticResource StatusBorderConv}}"
@@ -313,7 +316,7 @@
                     </Button>
 
                     <!-- ActBtn 3: Route Mode Segmented Switch (IN / OUT - 39x36) -->
-                    <Border Background="#1E293B" BorderBrush="{StaticResource DarkBorderBrush}" BorderThickness="1" CornerRadius="1" Height="36" Width="39" Margin="0,0,6,0" Padding="1" VerticalAlignment="Center">
+                    <Border Background="#FFFFFF" BorderBrush="{StaticResource DarkBorderBrush}" BorderThickness="1" CornerRadius="1" Height="36" Width="39" Margin="0,0,6,0" Padding="1" VerticalAlignment="Center">
                         <Button Command="{Binding ToggleRouteModeCommand}" ToolTip="Toggle Route Direction (IN: Capture PC Mic -> Phone | OUT: PC Speaker -> Phone)">
                             <Button.Style>
                                 <Style TargetType="Button">
@@ -331,8 +334,8 @@
                                 </Style>
                             </Button.Style>
                             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <TextBlock Text="{Binding RouteModeText}" FontSize="8" FontWeight="Bold" Foreground="#38BDF8" HorizontalAlignment="Center" />
-                                <Path Data="M 1 4 L 5 1 L 5 7 Z M 9 4 L 5 7" Stroke="#38BDF8" StrokeThickness="1" Width="10" Height="8" HorizontalAlignment="Center" Margin="0,1,0,0" />
+                                <TextBlock Text="{Binding RouteModeText}" FontSize="8" FontWeight="Bold" Foreground="#0284C7" HorizontalAlignment="Center" />
+                                <Path Data="M 1 4 L 5 1 L 5 7 Z M 9 4 L 5 7" Stroke="#0284C7" StrokeThickness="1" Width="10" Height="8" HorizontalAlignment="Center" Margin="0,1,0,0" />
                             </StackPanel>
                         </Button>
                     </Border>
@@ -345,7 +348,7 @@
                             <Ellipse Width="6" Height="6" Margin="0,0,0,1">
                                 <Ellipse.Style>
                                     <Style TargetType="Ellipse">
-                                        <Setter Property="Fill" Value="#475569" />
+                                        <Setter Property="Fill" Value="#D1D5DB" />
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsToneEnabled}" Value="True">
                                                 <Setter Property="Fill" Value="{StaticResource TechAmberBrush}" />
@@ -369,7 +372,7 @@
                     <Border Background="{StaticResource TechCyanBgBrush}" BorderBrush="{StaticResource TechCyanBorderBrush}" BorderThickness="1" CornerRadius="2" Width="244" Height="38" Padding="4,1" Margin="0,0,8,0">
                         <DockPanel LastChildFill="True">
                             <!-- Category Glyph Icon (Matching Figma node 30:406) -->
-                            <Border Width="22" Height="22" Background="#0C4A6E" CornerRadius="2" Margin="0,0,4,0" DockPanel.Dock="Left" VerticalAlignment="Center">
+                            <Border Width="22" Height="22" Background="#CCFBF1" CornerRadius="2" Margin="0,0,4,0" DockPanel.Dock="Left" VerticalAlignment="Center">
                                 <Path Data="M 6 2 H 18 A 2 2 0 0 1 20 4 V 20 A 2 2 0 0 1 18 22 H 6 A 2 2 0 0 1 4 20 V 4 A 2 2 0 0 1 6 2 Z M 12 18 A 1 1 0 1 0 12 20 A 1 1 0 1 0 12 18 Z" 
                                       Stroke="{StaticResource TechCyanBrush}" StrokeThickness="1.2" Fill="Transparent" Stretch="Uniform" Width="10" Height="12" />
                             </Border>
@@ -377,15 +380,15 @@
                             <!-- Settings shortcut button -->
                             <Button DockPanel.Dock="Right" Command="{Binding OpenBluetoothSettingsCommand}" Style="{StaticResource ToolbarButton}" Width="22" Height="24" Padding="0" Margin="2,0,0,0" ToolTip="Open Windows Bluetooth Settings (ms-settings:bluetooth)">
                                 <Path Data="M 12 15 A 3 3 0 1 0 12 9 A 3 3 0 1 0 12 15 M 19.4 15 A 1.65 1.65 0 0 0 19.73 16.82 L 19.8 16.9 A 2 2 0 1 1 17 19.7 L 16.9 19.6 A 1.65 1.65 0 0 0 15 19.4 A 1.65 1.65 0 0 0 13.5 20.9 L 13.5 21 A 2 2 0 1 1 9.5 21 L 9.5 20.9 A 1.65 1.65 0 0 0 8 19.4 A 1.65 1.65 0 0 0 6.18 19.73 L 6.1 19.8 A 2 2 0 1 1 3.3 17 L 3.4 16.9 A 1.65 1.65 0 0 0 3.6 15 A 1.65 1.65 0 0 0 2.1 13.5 L 2 13.5 A 2 2 0 1 1 2 9.5 L 2.1 9.5 A 1.65 1.65 0 0 0 3.6 8 A 1.65 1.65 0 0 0 3.27 6.18 L 3.2 6.1 A 2 2 0 1 1 6 3.3 L 6.1 3.4 A 1.65 1.65 0 0 0 8 3.6 A 1.65 1.65 0 0 0 9.5 2.1 L 9.5 2 A 2 2 0 1 1 13.5 2 L 13.5 2.1 A 1.65 1.65 0 0 0 15 3.6 A 1.65 1.65 0 0 0 16.82 3.27 L 16.9 3.2 A 2 2 0 1 1 19.7 6 L 19.6 6.1 A 1.65 1.65 0 0 0 19.4 8 A 1.65 1.65 0 0 0 20.9 9.5 L 21 9.5 A 2 2 0 1 1 21 13.5 L 20.9 13.5 A 1.65 1.65 0 0 0 19.4 15 Z" 
-                                      Stroke="#94A3B8" StrokeThickness="1.2" Width="10" Height="10" Stretch="Uniform" />
+                                      Stroke="#6B7280" StrokeThickness="1.2" Width="10" Height="10" Stretch="Uniform" />
                             </Button>
 
                             <!-- WinRT Radio Power Button (from commit 1b99a7b9) -->
                             <Button DockPanel.Dock="Right" Command="{Binding ToggleBluetoothRadioCommand}" Height="24" Padding="5,0" Margin="2,0,0,0" ToolTip="{Binding BluetoothButtonToolTip}">
                                 <Button.Style>
                                     <Style TargetType="Button" BasedOn="{StaticResource ToolbarButton}">
-                                        <Setter Property="Background" Value="#1E293B" />
-                                        <Setter Property="BorderBrush" Value="#334155" />
+                                        <Setter Property="Background" Value="#FFFFFF" />
+                                        <Setter Property="BorderBrush" Value="#CBD5E1" />
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsBluetoothEnabled}" Value="True">
                                                 <Setter Property="Background" Value="{StaticResource TechGreenBgBrush}" />
@@ -404,16 +407,16 @@
                             <!-- Bluetooth Device ComboBox -->
                             <ComboBox ItemsSource="{Binding BluetoothDevices}" 
                                       SelectedItem="{Binding SelectedBluetoothDevice, Mode=TwoWay}"
-                                      Height="26" VerticalContentAlignment="Center" Background="#0F172A" BorderBrush="{StaticResource DarkBorderBrush}" ToolTip="Select paired Bluetooth client (Phone/Headset)">
+                                      Height="26" VerticalContentAlignment="Center" Background="#FFFFFF" BorderBrush="{StaticResource DarkBorderBrush}" ToolTip="Select paired Bluetooth client (Phone/Headset)">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <DockPanel LastChildFill="True">
                                             <!-- Support Status Badge (Matching node 28:34) -->
-                                            <Border CornerRadius="1" Padding="3,1" Margin="4,0,0,0" DockPanel.Dock="Right" Background="#1E293B" BorderBrush="#334155" BorderThickness="1">
-                                                <TextBlock Text="{Binding BridgeSupportStatus}" FontSize="8" FontWeight="Bold" Foreground="#38BDF8" />
+                                            <Border CornerRadius="1" Padding="3,1" Margin="4,0,0,0" DockPanel.Dock="Right" Background="#E0F2FE" BorderBrush="#BAE6FD" BorderThickness="1">
+                                                <TextBlock Text="{Binding BridgeSupportStatus}" FontSize="8" FontWeight="Bold" Foreground="#0369A1" />
                                             </Border>
                                             <!-- Category Glyph Text -->
-                                            <Border CornerRadius="1" Padding="2,0" Margin="0,0,4,0" DockPanel.Dock="Left" Background="#083344">
+                                            <Border CornerRadius="1" Padding="2,0" Margin="0,0,4,0" DockPanel.Dock="Left" Background="#CCFBF1">
                                                 <TextBlock Text="{Binding CategoryText}" FontSize="7" FontWeight="Bold" Foreground="{StaticResource TechCyanBrush}" />
                                             </Border>
                                             <!-- Device Name in Bold (Matching node 28:34) -->
@@ -432,18 +435,18 @@
                     <Border Background="{StaticResource TechPinkBgBrush}" BorderBrush="{StaticResource TechPinkBorderBrush}" BorderThickness="1" CornerRadius="2" Width="244" Height="38" Padding="4,1">
                         <DockPanel LastChildFill="True">
                             <!-- Directional Label Badge -->
-                            <Border CornerRadius="1" Padding="4,2" Margin="0,0,4,0" DockPanel.Dock="Left" Background="#831843" VerticalAlignment="Center">
+                            <Border CornerRadius="1" Padding="4,2" Margin="0,0,4,0" DockPanel.Dock="Left" Background="#FFE4E6" VerticalAlignment="Center">
                                 <TextBlock Text="{Binding Dropdown2Label}" FontSize="8" FontWeight="Bold" Foreground="{StaticResource TechPinkBrush}" />
                             </Border>
 
                             <!-- Host Endpoint ComboBox -->
                             <ComboBox ItemsSource="{Binding AvailableEndpointDevices}" 
                                       SelectedItem="{Binding SelectedEndpointDevice, Mode=TwoWay}"
-                                      Height="26" VerticalContentAlignment="Center" Background="#0F172A" BorderBrush="{StaticResource DarkBorderBrush}" ToolTip="Select host audio endpoint for bridge route">
+                                      Height="26" VerticalContentAlignment="Center" Background="#FFFFFF" BorderBrush="{StaticResource DarkBorderBrush}" ToolTip="Select host audio endpoint for bridge route">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
                                         <DockPanel LastChildFill="True">
-                                            <Border Background="#1E293B" BorderBrush="#334155" BorderThickness="1" CornerRadius="1" Padding="3,1" Margin="4,0,0,0" DockPanel.Dock="Right" Visibility="{Binding IsDefault, Converter={StaticResource BoolToVisConv}}">
+                                            <Border Background="#FFE4E6" BorderBrush="#FECDD3" BorderThickness="1" CornerRadius="1" Padding="3,1" Margin="4,0,0,0" DockPanel.Dock="Right" Visibility="{Binding IsDefault, Converter={StaticResource BoolToVisConv}}">
                                                 <TextBlock Text="DEF" FontSize="8" FontWeight="Bold" Foreground="{StaticResource TechPinkBrush}" />
                                             </Border>
                                             <TextBlock Text="{Binding Name}" FontSize="10" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
@@ -482,8 +485,8 @@
                             <StackPanel>
                                 <DockPanel LastChildFill="False" Margin="0,0,0,6">
                                     <TextBlock Text="PRESETS &amp; PROFILES" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0" />
-                                    <Border Background="#1E293B" BorderBrush="#334155" BorderThickness="1" CornerRadius="2" Padding="4,1" DockPanel.Dock="Right">
-                                        <TextBlock Text="{Binding SelectedPreset.Tag, FallbackValue='VOICE'}" FontSize="8" FontWeight="Bold" Foreground="#38BDF8" />
+                                    <Border Background="#E0F2FE" BorderBrush="#BAE6FD" BorderThickness="1" CornerRadius="2" Padding="4,1" DockPanel.Dock="Right">
+                                        <TextBlock Text="{Binding SelectedPreset.Tag, FallbackValue='VOICE'}" FontSize="8" FontWeight="Bold" Foreground="#0369A1" />
                                     </Border>
                                 </DockPanel>
 
@@ -539,7 +542,7 @@
                                                     <DockPanel LastChildFill="False">
                                                         <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="10" 
                                                                    Foreground="{Binding Status, Converter={StaticResource StatusFgConv}}" 
-                                                                   DockPanel.Dock="Left" VerticalAlignment="Center" />
+                                                        DockPanel.Dock="Left" VerticalAlignment="Center" />
                                                         <Border Background="{StaticResource SurfaceBrush}"
                                                                 BorderBrush="{Binding Status, Converter={StaticResource StatusBorderConv}}"
                                                                 BorderThickness="1" CornerRadius="1" Padding="4,1" DockPanel.Dock="Right">
@@ -617,7 +620,7 @@
                                 <Button DockPanel.Dock="Right" Content="DISMISS" Command="{Binding ClearErrorCommand}" Style="{StaticResource ToolbarButton}" Height="22" Padding="6,1" FontSize="9" VerticalAlignment="Center" Margin="6,0,0,0" />
                                 <StackPanel VerticalAlignment="Center">
                                     <TextBlock Text="ENGINE FAILURE DETECTED" FontWeight="Bold" FontSize="10" Foreground="{StaticResource TechRedBrush}" />
-                                    <TextBlock Text="{Binding ErrorMessage}" FontSize="9" Foreground="#FCA5A5" TextWrapping="Wrap" Margin="0,2,0,0" />
+                                    <TextBlock Text="{Binding ErrorMessage}" FontSize="9" Foreground="#991B1B" TextWrapping="Wrap" Margin="0,2,0,0" />
                                 </StackPanel>
                             </DockPanel>
                         </Border>
@@ -639,228 +642,228 @@
                                         <RowDefinition Height="Auto" />
                                     </Grid.RowDefinitions>
                                     <DockPanel Grid.Row="0" LastChildFill="False" Margin="0,0,0,2">
-                                        <TextBlock Text="INPUT (Capture Mic / Bluetooth)" FontSize="9" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" DockPanel.Dock="Left" />
-                                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
-                                            <!-- Clip LED -->
-                                            <Border Width="7" Height="7" CornerRadius="3.5" Margin="0,0,4,0" VerticalAlignment="Center">
-                                                <Border.Style>
-                                                    <Style TargetType="Border">
-                                                        <Setter Property="Background" Value="#1E293B" />
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsInputClipping}" Value="True">
-                                                                <Setter Property="Background" Value="{StaticResource TechRedBrush}" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Border.Style>
-                                            </Border>
-                                            <TextBlock Text="{Binding InputPeakDbText}" FontSize="9" FontFamily="Consolas, monospace" FontWeight="Bold" Foreground="{Binding InputMeterBrush}" VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </DockPanel>
-                                    <ProgressBar Grid.Row="1" Style="{StaticResource EngineeringProgressBar}" 
-                                                 Value="{Binding InputPeakPercent, Mode=OneWay}" 
-                                                 Foreground="{Binding InputMeterBrush}" />
-                                </Grid>
+                                         <TextBlock Text="INPUT (Capture Mic / Bluetooth)" FontSize="9" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" DockPanel.Dock="Left" />
+                                         <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                                             <!-- Clip LED -->
+                                             <Border Width="7" Height="7" CornerRadius="3.5" Margin="0,0,4,0" VerticalAlignment="Center">
+                                                 <Border.Style>
+                                                     <Style TargetType="Border">
+                                                         <Setter Property="Background" Value="#D1D5DB" />
+                                                         <Style.Triggers>
+                                                             <DataTrigger Binding="{Binding IsInputClipping}" Value="True">
+                                                                 <Setter Property="Background" Value="{StaticResource TechRedBrush}" />
+                                                             </DataTrigger>
+                                                         </Style.Triggers>
+                                                     </Style>
+                                                 </Border.Style>
+                                             </Border>
+                                             <TextBlock Text="{Binding InputPeakDbText}" FontSize="9" FontFamily="Consolas, monospace" FontWeight="Bold" Foreground="{Binding InputMeterBrush}" VerticalAlignment="Center" />
+                                         </StackPanel>
+                                     </DockPanel>
+                                     <ProgressBar Grid.Row="1" Style="{StaticResource EngineeringProgressBar}" 
+                                                  Value="{Binding InputPeakPercent, Mode=OneWay}" 
+                                                  Foreground="{Binding InputMeterBrush}" />
+                                 </Grid>
 
-                                <!-- Output Peak Meter -->
-                                <Grid>
-                                    <Grid.RowDefinitions>
-                                        <RowDefinition Height="Auto" />
-                                        <RowDefinition Height="Auto" />
-                                    </Grid.RowDefinitions>
-                                    <DockPanel Grid.Row="0" LastChildFill="False" Margin="0,0,0,2">
-                                        <TextBlock Text="OUTPUT (Render Endpoint / Host)" FontSize="9" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" DockPanel.Dock="Left" />
-                                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
-                                            <!-- Clip LED -->
-                                            <Border Width="7" Height="7" CornerRadius="3.5" Margin="0,0,4,0" VerticalAlignment="Center">
-                                                <Border.Style>
-                                                    <Style TargetType="Border">
-                                                        <Setter Property="Background" Value="#1E293B" />
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsOutputClipping}" Value="True">
-                                                                <Setter Property="Background" Value="{StaticResource TechRedBrush}" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Border.Style>
-                                            </Border>
-                                            <TextBlock Text="{Binding OutputPeakDbText}" FontSize="9" FontFamily="Consolas, monospace" FontWeight="Bold" Foreground="{Binding OutputMeterBrush}" VerticalAlignment="Center" />
-                                        </StackPanel>
-                                    </DockPanel>
-                                    <ProgressBar Grid.Row="1" Style="{StaticResource EngineeringProgressBar}" 
-                                                 Value="{Binding OutputPeakPercent, Mode=OneWay}" 
-                                                 Foreground="{Binding OutputMeterBrush}" />
-                                </Grid>
-                            </StackPanel>
-                        </Border>
+                                 <!-- Output Peak Meter -->
+                                 <Grid>
+                                     <Grid.RowDefinitions>
+                                         <RowDefinition Height="Auto" />
+                                         <RowDefinition Height="Auto" />
+                                     </Grid.RowDefinitions>
+                                     <DockPanel Grid.Row="0" LastChildFill="False" Margin="0,0,0,2">
+                                         <TextBlock Text="OUTPUT (Render Endpoint / Host)" FontSize="9" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" DockPanel.Dock="Left" />
+                                         <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                                             <!-- Clip LED -->
+                                             <Border Width="7" Height="7" CornerRadius="3.5" Margin="0,0,4,0" VerticalAlignment="Center">
+                                                 <Border.Style>
+                                                     <Style TargetType="Border">
+                                                         <Setter Property="Background" Value="#D1D5DB" />
+                                                         <Style.Triggers>
+                                                             <DataTrigger Binding="{Binding IsOutputClipping}" Value="True">
+                                                                 <Setter Property="Background" Value="{StaticResource TechRedBrush}" />
+                                                             </DataTrigger>
+                                                         </Style.Triggers>
+                                                     </Style>
+                                                 </Border.Style>
+                                             </Border>
+                                             <TextBlock Text="{Binding OutputPeakDbText}" FontSize="9" FontFamily="Consolas, monospace" FontWeight="Bold" Foreground="{Binding OutputMeterBrush}" VerticalAlignment="Center" />
+                                         </StackPanel>
+                                     </DockPanel>
+                                     <ProgressBar Grid.Row="1" Style="{StaticResource EngineeringProgressBar}" 
+                                                  Value="{Binding OutputPeakPercent, Mode=OneWay}" 
+                                                  Foreground="{Binding OutputMeterBrush}" />
+                                 </Grid>
+                             </StackPanel>
+                         </Border>
 
-                        <!-- ===================================================== -->
-                        <!-- BLOCK 2: CONFIGURE / PLAYGROUND SECTION               -->
-                        <!-- (Figma v0.0.2 Configure / Playground Section)         -->
-                        <!-- ===================================================== -->
-                        <Border Style="{StaticResource EngineeringCard}" Margin="0,0,0,8" Padding="10">
-                            <StackPanel>
-                                <DockPanel LastChildFill="False" Margin="0,0,0,6">
-                                    <TextBlock Text="AUDIO PIPELINE &amp; SOURCE FADERS" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0" />
-                                    <TextBlock Text="GAIN STAGING &amp; DSP" FontSize="8" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" DockPanel.Dock="Right" VerticalAlignment="Center" />
-                                </DockPanel>
+                         <!-- ===================================================== -->
+                         <!-- BLOCK 2: CONFIGURE / PLAYGROUND SECTION               -->
+                         <!-- (Figma v0.0.2 Configure / Playground Section)         -->
+                         <!-- ===================================================== -->
+                         <Border Style="{StaticResource EngineeringCard}" Margin="0,0,0,8" Padding="10">
+                             <StackPanel>
+                                 <DockPanel LastChildFill="False" Margin="0,0,0,6">
+                                     <TextBlock Text="AUDIO PIPELINE &amp; SOURCE FADERS" Style="{StaticResource SectionHeader}" DockPanel.Dock="Left" Margin="0" />
+                                     <TextBlock Text="GAIN STAGING &amp; DSP" FontSize="8" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" DockPanel.Dock="Right" VerticalAlignment="Center" />
+                                 </DockPanel>
 
-                                <!-- Channel 1: Microphone Source -->
-                                <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="1" Padding="6" Margin="0,0,0,5">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="100" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="60" />
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                            <TextBlock Text="MIC CHANNEL" FontWeight="Bold" FontSize="9" Foreground="{StaticResource TextPrimaryBrush}" />
-                                            <TextBlock Text="{Binding MicStatusText}" FontSize="8" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" />
-                                        </StackPanel>
-                                        <Slider Grid.Column="1" Minimum="0.0" Maximum="4.0" Value="{Binding MicGain, Mode=TwoWay}" 
-                                                VerticalAlignment="Center" Margin="6,0" />
-                                        <TextBlock Grid.Column="2" Text="{Binding MicGainText}" FontFamily="Consolas, monospace" FontWeight="Bold" FontSize="10" 
-                                                   HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#38BDF8" />
-                                    </Grid>
-                                </Border>
+                                 <!-- Channel 1: Microphone Source -->
+                                 <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="1" Padding="6" Margin="0,0,0,5">
+                                     <Grid>
+                                         <Grid.ColumnDefinitions>
+                                             <ColumnDefinition Width="100" />
+                                             <ColumnDefinition Width="*" />
+                                             <ColumnDefinition Width="60" />
+                                         </Grid.ColumnDefinitions>
+                                         <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                             <TextBlock Text="MIC CHANNEL" FontWeight="Bold" FontSize="9" Foreground="{StaticResource TextPrimaryBrush}" />
+                                             <TextBlock Text="{Binding MicStatusText}" FontSize="8" FontWeight="SemiBold" Foreground="{StaticResource TextMutedBrush}" />
+                                         </StackPanel>
+                                         <Slider Grid.Column="1" Minimum="0.0" Maximum="4.0" Value="{Binding MicGain, Mode=TwoWay}" 
+                                                 VerticalAlignment="Center" Margin="6,0" />
+                                         <TextBlock Grid.Column="2" Text="{Binding MicGainText}" FontFamily="Consolas, monospace" FontWeight="Bold" FontSize="10" 
+                                                    HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#0284C7" />
+                                     </Grid>
+                                 </Border>
 
-                                <!-- Channel 2: 1000 Hz Sine Wave Test Tone -->
-                                <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="1" Padding="6" Margin="0,0,0,5">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="100" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="60" />
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                            <TextBlock Text="TEST TONE (1kHz)" FontWeight="Bold" FontSize="9" Foreground="{StaticResource TextPrimaryBrush}" />
-                                            <TextBlock Text="-12 dBFS Ref" FontSize="7" Foreground="{StaticResource TextMutedBrush}" />
-                                        </StackPanel>
-                                        <Slider Grid.Column="1" Minimum="0.0" Maximum="2.0" Value="{Binding ToneGain, Mode=TwoWay}" 
-                                                VerticalAlignment="Center" Margin="6,0" />
-                                        <TextBlock Grid.Column="2" Text="{Binding ToneGainText}" FontFamily="Consolas, monospace" FontWeight="Bold" FontSize="10" 
-                                                   HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="{StaticResource TechAmberBrush}" />
-                                    </Grid>
-                                </Border>
+                                 <!-- Channel 2: 1000 Hz Sine Wave Test Tone -->
+                                 <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="1" Padding="6" Margin="0,0,0,5">
+                                     <Grid>
+                                         <Grid.ColumnDefinitions>
+                                             <ColumnDefinition Width="100" />
+                                             <ColumnDefinition Width="*" />
+                                             <ColumnDefinition Width="60" />
+                                         </Grid.ColumnDefinitions>
+                                         <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                             <TextBlock Text="TEST TONE (1kHz)" FontWeight="Bold" FontSize="9" Foreground="{StaticResource TextPrimaryBrush}" />
+                                             <TextBlock Text="-12 dBFS Ref" FontSize="7" Foreground="{StaticResource TextMutedBrush}" />
+                                         </StackPanel>
+                                         <Slider Grid.Column="1" Minimum="0.0" Maximum="2.0" Value="{Binding ToneGain, Mode=TwoWay}" 
+                                                 VerticalAlignment="Center" Margin="6,0" />
+                                         <TextBlock Grid.Column="2" Text="{Binding ToneGainText}" FontFamily="Consolas, monospace" FontWeight="Bold" FontSize="10" 
+                                                    HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="{StaticResource TechAmberBrush}" />
+                                     </Grid>
+                                 </Border>
 
-                                <!-- Channel 3: Audio File Playback -->
-                                <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="1" Padding="6" Margin="0,0,0,6">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="100" />
-                                            <ColumnDefinition Width="*" />
-                                            <ColumnDefinition Width="60" />
-                                        </Grid.ColumnDefinitions>
-                                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                            <TextBlock Text="FILE PLAYBACK" FontWeight="Bold" FontSize="9" Foreground="{StaticResource TextPrimaryBrush}" />
-                                            <TextBlock Text="{Binding AudioFileStatusText}" FontSize="7" Foreground="{StaticResource TextMutedBrush}" TextTrimming="CharacterEllipsis" />
-                                        </StackPanel>
-                                        <Slider Grid.Column="1" Minimum="0.0" Maximum="2.0" Value="{Binding FileGain, Mode=TwoWay}" 
-                                                VerticalAlignment="Center" Margin="6,0" />
-                                        <TextBlock Grid.Column="2" Text="{Binding FileGainText}" FontFamily="Consolas, monospace" FontWeight="Bold" FontSize="10" 
-                                                   HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#A78BFA" />
-                                    </Grid>
-                                </Border>
+                                 <!-- Channel 3: Audio File Playback -->
+                                 <Border Background="{StaticResource PanelBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="1" Padding="6" Margin="0,0,0,6">
+                                     <Grid>
+                                         <Grid.ColumnDefinitions>
+                                             <ColumnDefinition Width="100" />
+                                             <ColumnDefinition Width="*" />
+                                             <ColumnDefinition Width="60" />
+                                         </Grid.ColumnDefinitions>
+                                         <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                             <TextBlock Text="FILE PLAYBACK" FontWeight="Bold" FontSize="9" Foreground="{StaticResource TextPrimaryBrush}" />
+                                             <TextBlock Text="{Binding AudioFileStatusText}" FontSize="7" Foreground="{StaticResource TextMutedBrush}" TextTrimming="CharacterEllipsis" />
+                                         </StackPanel>
+                                         <Slider Grid.Column="1" Minimum="0.0" Maximum="2.0" Value="{Binding FileGain, Mode=TwoWay}" 
+                                                 VerticalAlignment="Center" Margin="6,0" />
+                                         <TextBlock Grid.Column="2" Text="{Binding FileGainText}" FontFamily="Consolas, monospace" FontWeight="Bold" FontSize="10" 
+                                                    HorizontalAlignment="Right" VerticalAlignment="Center" Foreground="#7C3AED" />
+                                     </Grid>
+                                 </Border>
 
-                                <!-- DSP Quick Conditioning Strip -->
-                                <Border Background="#111827" BorderBrush="{StaticResource DarkBorderBrush}" BorderThickness="1" CornerRadius="1" Padding="6,4">
-                                    <DockPanel LastChildFill="False">
-                                        <TextBlock Text="DSP FILTERS:" FontSize="8" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,8,0" />
-                                        
-                                        <!-- High-Pass Filter Toggle -->
-                                        <Button DockPanel.Dock="Left" Command="{Binding ToggleHighPassFilterCommand}" Style="{StaticResource DspToggleButton}" Margin="0,0,4,0" ToolTip="Toggle 80Hz High-Pass Filter to cut desk rumble">
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="HPF (80Hz): " FontSize="8" />
-                                                <TextBlock Text="{Binding IsHighPassFilterEnabled, Converter={StaticResource StatusFgConv}}" FontWeight="Bold" FontSize="8">
-                                                    <TextBlock.Style>
-                                                        <Style TargetType="TextBlock">
-                                                            <Setter Property="Text" Value="ACTIVE" />
-                                                            <Setter Property="Foreground" Value="{StaticResource TechGreenBrush}" />
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding IsHighPassFilterEnabled}" Value="False">
-                                                                    <Setter Property="Text" Value="BYPASS" />
-                                                                    <Setter Property="Foreground" Value="{StaticResource TextDisabledBrush}" />
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </TextBlock.Style>
-                                                </TextBlock>
-                                            </StackPanel>
-                                        </Button>
+                                 <!-- DSP Quick Conditioning Strip -->
+                                 <Border Background="#F9FAFB" BorderBrush="{StaticResource DarkBorderBrush}" BorderThickness="1" CornerRadius="1" Padding="6,4">
+                                     <DockPanel LastChildFill="False">
+                                         <TextBlock Text="DSP FILTERS:" FontSize="8" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                         
+                                         <!-- High-Pass Filter Toggle -->
+                                         <Button DockPanel.Dock="Left" Command="{Binding ToggleHighPassFilterCommand}" Style="{StaticResource DspToggleButton}" Margin="0,0,4,0" ToolTip="Toggle 80Hz High-Pass Filter to cut desk rumble">
+                                             <StackPanel Orientation="Horizontal">
+                                                 <TextBlock Text="HPF (80Hz): " FontSize="8" />
+                                                 <TextBlock Text="{Binding IsHighPassFilterEnabled, Converter={StaticResource StatusFgConv}}" FontWeight="Bold" FontSize="8">
+                                                     <TextBlock.Style>
+                                                         <Style TargetType="TextBlock">
+                                                             <Setter Property="Text" Value="ACTIVE" />
+                                                             <Setter Property="Foreground" Value="{StaticResource TechGreenBrush}" />
+                                                             <Style.Triggers>
+                                                                 <DataTrigger Binding="{Binding IsHighPassFilterEnabled}" Value="False">
+                                                                     <Setter Property="Text" Value="BYPASS" />
+                                                                     <Setter Property="Foreground" Value="{StaticResource TextDisabledBrush}" />
+                                                                 </DataTrigger>
+                                                             </Style.Triggers>
+                                                         </Style>
+                                                     </TextBlock.Style>
+                                                 </TextBlock>
+                                             </StackPanel>
+                                         </Button>
 
-                                        <!-- Noise Gate Toggle -->
-                                        <Button DockPanel.Dock="Left" Command="{Binding ToggleNoiseGateCommand}" Style="{StaticResource DspToggleButton}" Margin="0,0,4,0" ToolTip="Toggle Noise Gate (-45 dBFS Threshold)">
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="GATE (-45dB): " FontSize="8" />
-                                                <TextBlock Text="{Binding IsNoiseGateEnabled, Converter={StaticResource StatusFgConv}}" FontWeight="Bold" FontSize="8">
-                                                    <TextBlock.Style>
-                                                        <Style TargetType="TextBlock">
-                                                            <Setter Property="Text" Value="ACTIVE" />
-                                                            <Setter Property="Foreground" Value="{StaticResource TechGreenBrush}" />
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding IsNoiseGateEnabled}" Value="False">
-                                                                    <Setter Property="Text" Value="BYPASS" />
-                                                                    <Setter Property="Foreground" Value="{StaticResource TextDisabledBrush}" />
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </TextBlock.Style>
-                                                </TextBlock>
-                                            </StackPanel>
-                                        </Button>
+                                         <!-- Noise Gate Toggle -->
+                                         <Button DockPanel.Dock="Left" Command="{Binding ToggleNoiseGateCommand}" Style="{StaticResource DspToggleButton}" Margin="0,0,4,0" ToolTip="Toggle Noise Gate (-45 dBFS Threshold)">
+                                             <StackPanel Orientation="Horizontal">
+                                                 <TextBlock Text="GATE (-45dB): " FontSize="8" />
+                                                 <TextBlock Text="{Binding IsNoiseGateEnabled, Converter={StaticResource StatusFgConv}}" FontWeight="Bold" FontSize="8">
+                                                     <TextBlock.Style>
+                                                         <Style TargetType="TextBlock">
+                                                             <Setter Property="Text" Value="ACTIVE" />
+                                                             <Setter Property="Foreground" Value="{StaticResource TechGreenBrush}" />
+                                                             <Style.Triggers>
+                                                                 <DataTrigger Binding="{Binding IsNoiseGateEnabled}" Value="False">
+                                                                     <Setter Property="Text" Value="BYPASS" />
+                                                                     <Setter Property="Foreground" Value="{StaticResource TextDisabledBrush}" />
+                                                                 </DataTrigger>
+                                                             </Style.Triggers>
+                                                         </Style>
+                                                     </TextBlock.Style>
+                                                 </TextBlock>
+                                             </StackPanel>
+                                         </Button>
 
-                                        <!-- Peak Limiter Toggle -->
-                                        <Button DockPanel.Dock="Left" Command="{Binding ToggleLimiterCommand}" Style="{StaticResource DspToggleButton}" ToolTip="Toggle Soft Peak Limiter (-0.5 dBFS)">
-                                            <StackPanel Orientation="Horizontal">
-                                                <TextBlock Text="LIMITER: " FontSize="8" />
-                                                <TextBlock Text="{Binding IsLimiterEnabled, Converter={StaticResource StatusFgConv}}" FontWeight="Bold" FontSize="8">
-                                                    <TextBlock.Style>
-                                                        <Style TargetType="TextBlock">
-                                                            <Setter Property="Text" Value="ACTIVE" />
-                                                            <Setter Property="Foreground" Value="{StaticResource TechGreenBrush}" />
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding IsLimiterEnabled}" Value="False">
-                                                                    <Setter Property="Text" Value="BYPASS" />
-                                                                    <Setter Property="Foreground" Value="{StaticResource TextDisabledBrush}" />
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </TextBlock.Style>
-                                                </TextBlock>
-                                            </StackPanel>
-                                        </Button>
-                                    </DockPanel>
-                                </Border>
-                            </StackPanel>
-                        </Border>
+                                         <!-- Peak Limiter Toggle -->
+                                         <Button DockPanel.Dock="Left" Command="{Binding ToggleLimiterCommand}" Style="{StaticResource DspToggleButton}" ToolTip="Toggle Soft Peak Limiter (-0.5 dBFS)">
+                                             <StackPanel Orientation="Horizontal">
+                                                 <TextBlock Text="LIMITER: " FontSize="8" />
+                                                 <TextBlock Text="{Binding IsLimiterEnabled, Converter={StaticResource StatusFgConv}}" FontWeight="Bold" FontSize="8">
+                                                     <TextBlock.Style>
+                                                         <Style TargetType="TextBlock">
+                                                             <Setter Property="Text" Value="ACTIVE" />
+                                                             <Setter Property="Foreground" Value="{StaticResource TechGreenBrush}" />
+                                                             <Style.Triggers>
+                                                                 <DataTrigger Binding="{Binding IsLimiterEnabled}" Value="False">
+                                                                     <Setter Property="Text" Value="BYPASS" />
+                                                                     <Setter Property="Foreground" Value="{StaticResource TextDisabledBrush}" />
+                                                                 </DataTrigger>
+                                                             </Style.Triggers>
+                                                         </Style>
+                                                     </TextBlock.Style>
+                                                 </TextBlock>
+                                             </StackPanel>
+                                         </Button>
+                                     </DockPanel>
+                                 </Border>
+                             </StackPanel>
+                         </Border>
 
-                        <!-- ===================================================== -->
-                        <!-- BLOCK 3: LIVE DIAGNOSTIC LOGGING CONSOLE              -->
-                        <!-- (Figma v0.0.2 Logging console section)                -->
-                        <!-- ===================================================== -->
-                        <Border Style="{StaticResource EngineeringCard}" Padding="8">
-                            <StackPanel>
-                                <DockPanel LastChildFill="False" Margin="0,0,0,4">
-                                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
-                                        <Ellipse Width="6" Height="6" Fill="{StaticResource TechGreenBrush}" Margin="0,0,4,0" VerticalAlignment="Center" />
-                                        <TextBlock Text="DIAGNOSTIC EVENT LOG" Style="{StaticResource SectionHeader}" Margin="0" />
-                                    </StackPanel>
-                                    <Button DockPanel.Dock="Right" Content="CLEAR" Command="{Binding ClearLogsCommand}" 
-                                            Style="{StaticResource DspToggleButton}" Height="18" Padding="6,0" FontSize="8" VerticalAlignment="Center" />
-                                </DockPanel>
+                         <!-- ===================================================== -->
+                         <!-- BLOCK 3: LIVE DIAGNOSTIC LOGGING CONSOLE              -->
+                         <!-- (Figma v0.0.2 Logging console section)                -->
+                         <!-- ===================================================== -->
+                         <Border Style="{StaticResource EngineeringCard}" Padding="8">
+                             <StackPanel>
+                                 <DockPanel LastChildFill="False" Margin="0,0,0,4">
+                                     <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
+                                         <Ellipse Width="6" Height="6" Fill="{StaticResource TechGreenBrush}" Margin="0,0,4,0" VerticalAlignment="Center" />
+                                         <TextBlock Text="DIAGNOSTIC EVENT LOG" Style="{StaticResource SectionHeader}" Margin="0" />
+                                     </StackPanel>
+                                     <Button DockPanel.Dock="Right" Content="CLEAR" Command="{Binding ClearLogsCommand}" 
+                                             Style="{StaticResource DspToggleButton}" Height="18" Padding="6,0" FontSize="8" VerticalAlignment="Center" />
+                                 </DockPanel>
 
-                                <!-- Console Terminal Box -->
-                                <Border Background="{StaticResource TerminalBgBrush}" BorderBrush="{StaticResource DarkBorderBrush}" BorderThickness="1" CornerRadius="1" Height="85" Padding="6">
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                                        <ItemsControl ItemsSource="{Binding ConsoleLogs}">
-                                            <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <TextBlock Text="{Binding}" FontFamily="Consolas, monospace" FontSize="9" Foreground="#94A3B8" TextWrapping="Wrap" Margin="0,0,0,2" />
-                                                </DataTemplate>
-                                            </ItemsControl.ItemTemplate>
-                                        </ItemsControl>
-                                    </ScrollViewer>
-                                </Border>
+                                 <!-- Console Terminal Box -->
+                                 <Border Background="{StaticResource TerminalBgBrush}" BorderBrush="{StaticResource DarkBorderBrush}" BorderThickness="1" CornerRadius="1" Height="85" Padding="6">
+                                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                                         <ItemsControl ItemsSource="{Binding ConsoleLogs}">
+                                             <ItemsControl.ItemTemplate>
+                                                 <DataTemplate>
+                                                     <TextBlock Text="{Binding}" FontFamily="Consolas, monospace" FontSize="9" Foreground="{StaticResource TextSecondaryBrush}" TextWrapping="Wrap" Margin="0,0,0,2" />
+                                                 </DataTemplate>
+                                             </ItemsControl.ItemTemplate>
+                                         </ItemsControl>
+                                     </ScrollViewer>
+                                 </Border>
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -919,7 +922,7 @@
                     <Ellipse Width="6" Height="6" Margin="0,0,6,0" VerticalAlignment="Center">
                         <Ellipse.Style>
                             <Style TargetType="Ellipse">
-                                <Setter Property="Fill" Value="#475569" />
+                                <Setter Property="Fill" Value="#9CA3AF" />
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding Snapshot.State}" Value="Streaming">
                                         <Setter Property="Fill" Value="{StaticResource TechGreenBrush}" />
@@ -944,7 +947,7 @@
                     <TextBlock Text="●" FontSize="11" Margin="2,0,4,0" VerticalAlignment="Center">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="#475569" />
+                                <Setter Property="Foreground" Value="#9CA3AF" />
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding Snapshot.State}" Value="Streaming">
                                         <Setter Property="Foreground" Value="{StaticResource TechGreenBrush}" />
