@@ -48,6 +48,7 @@ namespace PhoneMicBridge.Application
         private DiagnosticOverallStatus _preflightOverall = DiagnosticOverallStatus.Unknown;
         private IReadOnlyList<PreflightItemDto> _preflightItems = Array.Empty<PreflightItemDto>();
         private string? _lastError;
+        private readonly IBluetoothRadioController _radioController;
 
         // Current immutable snapshot
         private BridgeUiSnapshot _currentSnapshot;
@@ -66,8 +67,16 @@ namespace PhoneMicBridge.Application
         public event EventHandler<BridgeUiSnapshot>? SnapshotChanged;
 
         public BridgeApplicationService(IPreflightDiagnosticsEngine? diagnosticsEngine = null)
+            : this(diagnosticsEngine, null)
+        {
+        }
+
+        public BridgeApplicationService(
+            IPreflightDiagnosticsEngine? diagnosticsEngine,
+            IBluetoothRadioController? radioController)
         {
             _diagnosticsEngine = diagnosticsEngine ?? new PreflightDiagnosticsEngine();
+            _radioController = radioController ?? WinRtBluetoothRadioController.Instance;
             _stateMachine = new BridgeStateMachine(BridgeState.Disconnected);
             _stateMachine.StateChanged += OnStateMachineStateChanged;
 
@@ -75,6 +84,8 @@ namespace PhoneMicBridge.Application
             _deviceWatcher.DeviceStateChanged += OnDeviceStateChanged;
             _deviceWatcher.DeviceAdded += OnDevicesListMutated;
             _deviceWatcher.DeviceRemoved += OnDevicesListMutated;
+
+            _radioController.RadioStateChanged += OnRadioStateChanged;
 
             _currentSnapshot = BridgeUiSnapshot.Initial();
             PublishSnapshot();
@@ -208,12 +219,32 @@ namespace PhoneMicBridge.Application
 
         public bool IsBluetoothRadioEnabled()
         {
-            return BluetoothDeviceDiscovery.IsBluetoothRadioEnabled();
+            return _radioController.IsRadioEnabled();
+        }
+
+        public async Task<BluetoothRadioStateResult> TurnOnBluetoothRadioAsync()
+        {
+            return await SetBluetoothRadioStateAsync(true).ConfigureAwait(false);
+        }
+
+        public async Task<BluetoothRadioStateResult> SetBluetoothRadioStateAsync(bool enable)
+        {
+            var result = await _radioController.SetRadioStateAsync(enable).ConfigureAwait(false);
+            if (result == BluetoothRadioStateResult.Success || result == BluetoothRadioStateResult.AlreadyInDesiredState)
+            {
+                await RunPreflightDiagnosticsAsync().ConfigureAwait(false);
+            }
+            return result;
         }
 
         public void OpenBluetoothSettings()
         {
-            BluetoothDeviceDiscovery.OpenWindowsBluetoothSettings();
+            _radioController.OpenWindowsBluetoothSettings();
+        }
+
+        public bool OpenWindowsPrivacySettings()
+        {
+            return _radioController.OpenWindowsPrivacySettings();
         }
 
         public async Task SelectDevicesAsync(string? captureDeviceId, string? renderDeviceId)
@@ -709,6 +740,21 @@ namespace PhoneMicBridge.Application
             });
         }
 
+        private void OnRadioStateChanged(object? sender, bool isEnabled)
+        {
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await RunPreflightDiagnosticsAsync().ConfigureAwait(false);
+                }
+                catch
+                {
+                    // Ignore background scan errors
+                }
+            });
+        }
+
         private void PublishSnapshot()
         {
             lock (_snapshotLock)
@@ -791,6 +837,7 @@ namespace PhoneMicBridge.Application
 
             try
             {
+                _radioController.RadioStateChanged -= OnRadioStateChanged;
                 _stateMachine.StateChanged -= OnStateMachineStateChanged;
                 _deviceWatcher.DeviceStateChanged -= OnDeviceStateChanged;
                 _deviceWatcher.DeviceAdded -= OnDevicesListMutated;

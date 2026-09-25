@@ -19,7 +19,12 @@ namespace PhoneMicBridge.Gui.ViewModels
         }
 
         public RelayCommand(Action execute)
-            : this(_ => execute(), null)
+            : this(_ => execute(), (Predicate<object?>?)null)
+        {
+        }
+
+        public RelayCommand(Action execute, Func<bool>? canExecute)
+            : this(_ => execute(), canExecute != null ? _ => canExecute() : null)
         {
         }
 

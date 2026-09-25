@@ -217,11 +217,16 @@ namespace PhoneMicBridge.Gui.ViewModels
         public bool IsBluetoothDisabled => _routeCoordinator.IsBluetoothDisabled;
         public bool HasBluetoothDevices => _routeCoordinator.HasBluetoothDevices;
         public bool IsBluetoothEmpty => _routeCoordinator.IsBluetoothEmpty;
+        public bool IsOperatingBluetoothRadio => _routeCoordinator.IsOperatingBluetoothRadio;
+        public string BluetoothRadioText => _routeCoordinator.BluetoothRadioText;
+        public string BluetoothButtonToolTip => _routeCoordinator.BluetoothButtonToolTip;
 
         public ICommand SetRouteInCommand => _routeCoordinator.SetRouteInCommand;
         public ICommand SetRouteOutCommand => _routeCoordinator.SetRouteOutCommand;
         public ICommand ToggleRouteModeCommand => _routeCoordinator.ToggleRouteModeCommand;
         public ICommand OpenBluetoothSettingsCommand => _routeCoordinator.OpenBluetoothSettingsCommand;
+        public ICommand TurnOnBluetoothCommand => _routeCoordinator.TurnOnBluetoothCommand;
+        public ICommand ToggleBluetoothRadioCommand => _routeCoordinator.ToggleBluetoothRadioCommand;
 
         public Task LoadDevicesAsync() => _routeCoordinator.LoadDevicesAsync();
 

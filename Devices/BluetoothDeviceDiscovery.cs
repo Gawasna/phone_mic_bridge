@@ -278,12 +278,41 @@ namespace PhoneMicBridge.Devices
         }
 
         /// <summary>
+        /// Programmatically sets Bluetooth radio power state without navigating away to Windows Settings.
+        /// </summary>
+        public static async Task<BluetoothRadioStateResult> SetBluetoothRadioStateAsync(
+            bool enable,
+            IBluetoothRadioController? controller = null)
+        {
+            var activeController = controller ?? WinRtBluetoothRadioController.Instance;
+            return await activeController.SetRadioStateAsync(enable).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Programmatically turns on the Bluetooth radio adapter without requiring user manual action in Windows Settings.
+        /// </summary>
+        public static async Task<BluetoothRadioStateResult> TurnOnBluetoothRadioAsync(
+            IBluetoothRadioController? controller = null)
+        {
+            return await SetBluetoothRadioStateAsync(true, controller).ConfigureAwait(false);
+        }
+
+        /// <summary>
         /// Opens native Windows Bluetooth Settings via shell execution mechanism.
         /// </summary>
         public static bool OpenWindowsBluetoothSettings(IBluetoothRegistryReader? registryReader = null)
         {
             var reader = registryReader ?? BluetoothRegistryReader.Instance;
             return reader.OpenWindowsBluetoothSettings();
+        }
+
+        /// <summary>
+        /// Opens native Windows Radios Privacy Settings URI via shell execution mechanism.
+        /// </summary>
+        public static bool OpenWindowsPrivacySettings(IBluetoothRadioController? controller = null)
+        {
+            var activeController = controller ?? WinRtBluetoothRadioController.Instance;
+            return activeController.OpenWindowsPrivacySettings();
         }
 
         /// <summary>
