@@ -249,5 +249,94 @@ namespace PhoneMicBridge.Tests
             Assert.NotNull(meterMonitor);
             Assert.NotNull(sourceCtrl);
         }
+
+        [Fact]
+        public void MainViewModel_Presets_InitializedAndAppliedCorrectly()
+        {
+            var service = new StubBridgeService();
+            var vm = CreateInstance("PhoneMicBridge.Gui.ViewModels.MainViewModel", service);
+
+            var presets = GetProp<IEnumerable>(vm, "Presets");
+            Assert.NotNull(presets);
+
+            int count = 0;
+            object? studioRaw = null;
+            foreach (var p in presets)
+            {
+                count++;
+                string id = (string)p.GetType().GetProperty("Id")!.GetValue(p)!;
+                if (id == "studio-raw") studioRaw = p;
+            }
+            Assert.True(count >= 4, "Must have at least 4 presets defined for wireframe v0.0.2");
+            Assert.NotNull(studioRaw);
+
+            // Apply preset
+            var applyCmd = GetProp<System.Windows.Input.ICommand>(vm, "ApplyPresetCommand");
+            Assert.NotNull(applyCmd);
+            applyCmd.Execute(studioRaw);
+
+            var selectedPreset = GetProp<object>(vm, "SelectedPreset");
+            Assert.Equal(studioRaw, selectedPreset);
+            Assert.False(GetProp<bool>(vm, "IsHighPassFilterEnabled"));
+            Assert.False(GetProp<bool>(vm, "IsNoiseGateEnabled"));
+        }
+
+        [Fact]
+        public void MainViewModel_DiagnosticLogs_AppendsAndClears()
+        {
+            var service = new StubBridgeService();
+            var vm = CreateInstance("PhoneMicBridge.Gui.ViewModels.MainViewModel", service);
+
+            var logs = GetProp<IList>(vm, "ConsoleLogs");
+            Assert.NotNull(logs);
+            Assert.True(logs.Count > 0, "ConsoleLogs should contain initialization messages");
+
+            // Log custom message
+            var logMethod = vm.GetType().GetMethod("LogMessage", new[] { typeof(string) });
+            Assert.NotNull(logMethod);
+            logMethod.Invoke(vm, new object[] { "Test Diagnostic Message" });
+
+            bool found = false;
+            foreach (var item in logs)
+            {
+                if (item?.ToString()?.Contains("Test Diagnostic Message") == true)
+                {
+                    found = true;
+                    break;
+                }
+            }
+            Assert.True(found, "LogMessage should be recorded in ConsoleLogs");
+
+            // Clear logs
+            var clearCmd = GetProp<System.Windows.Input.ICommand>(vm, "ClearLogsCommand");
+            Assert.NotNull(clearCmd);
+            clearCmd.Execute(null);
+
+            // After clear, only the "buffer cleared" message should remain
+            Assert.True(logs.Count >= 1);
+            Assert.Contains("cleared", logs[logs.Count - 1]?.ToString() ?? string.Empty);
+        }
+
+        [Fact]
+        public void MainViewModel_DspToggles_OperateCorrectly()
+        {
+            var service = new StubBridgeService();
+            var vm = CreateInstance("PhoneMicBridge.Gui.ViewModels.MainViewModel", service);
+
+            Assert.True(GetProp<bool>(vm, "IsHighPassFilterEnabled"));
+            var toggleHpf = GetProp<System.Windows.Input.ICommand>(vm, "ToggleHighPassFilterCommand");
+            toggleHpf.Execute(null);
+            Assert.False(GetProp<bool>(vm, "IsHighPassFilterEnabled"));
+
+            Assert.True(GetProp<bool>(vm, "IsNoiseGateEnabled"));
+            var toggleGate = GetProp<System.Windows.Input.ICommand>(vm, "ToggleNoiseGateCommand");
+            toggleGate.Execute(null);
+            Assert.False(GetProp<bool>(vm, "IsNoiseGateEnabled"));
+
+            Assert.True(GetProp<bool>(vm, "IsLimiterEnabled"));
+            var toggleLimiter = GetProp<System.Windows.Input.ICommand>(vm, "ToggleLimiterCommand");
+            toggleLimiter.Execute(null);
+            Assert.False(GetProp<bool>(vm, "IsLimiterEnabled"));
+        }
     }
 }
