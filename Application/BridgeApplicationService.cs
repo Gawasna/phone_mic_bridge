@@ -65,6 +65,7 @@ namespace PhoneMicBridge.Application
         }
 
         public event EventHandler<BridgeUiSnapshot>? SnapshotChanged;
+        public event EventHandler<bool>? RadioStateChanged;
 
         public BridgeApplicationService(IPreflightDiagnosticsEngine? diagnosticsEngine = null)
             : this(diagnosticsEngine, null)
@@ -742,6 +743,8 @@ namespace PhoneMicBridge.Application
 
         private void OnRadioStateChanged(object? sender, bool isEnabled)
         {
+            RadioStateChanged?.Invoke(this, isEnabled);
+            
             _ = Task.Run(async () =>
             {
                 try

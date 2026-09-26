@@ -20,6 +20,9 @@ namespace PhoneMicBridge.Tests
             public BridgeUiSnapshot CurrentSnapshot { get; set; } = BridgeUiSnapshot.Initial();
 #pragma warning disable CS0067
             public event EventHandler<BridgeUiSnapshot>? SnapshotChanged;
+#pragma warning disable CS0067
+        public event EventHandler<bool>? RadioStateChanged;
+#pragma warning restore CS0067
 #pragma warning restore CS0067
 
             public List<AudioDeviceDto> CaptureList { get; set; } = new();
@@ -250,7 +253,7 @@ namespace PhoneMicBridge.Tests
             Assert.False(btDev.IsHfpSupported);
             Assert.False(btDev.IsBridgeReady);
             Assert.False(btDev.CanSelectForBridge); // Gate 5 Selection Guard
-            Assert.Equal("Incompatible (A2DP Only)", btDev.BridgeSupportStatus);
+            Assert.Equal("Incompatible", btDev.BridgeSupportStatus);
         }
 
         [Fact]
@@ -280,7 +283,7 @@ namespace PhoneMicBridge.Tests
             Assert.True(btDev.IsHfpSupported); // Gate 3 Phone has HFP capability
             Assert.False(btDev.IsBridgeReady); // Gate 4 Not ready
             Assert.False(btDev.CanSelectForBridge); // Gate 5 Cannot select when offline
-            Assert.Contains("Offline", btDev.BridgeSupportStatus);
+            Assert.Equal("HFP Phone", btDev.BridgeSupportStatus);
         }
 
         [Fact]
@@ -383,7 +386,7 @@ namespace PhoneMicBridge.Tests
             Assert.Equal(BluetoothDeviceCategory.Phone, discovered[0].Category);
             Assert.True(discovered[0].IsHfpSupported);
             Assert.False(discovered[0].IsConnected); // NotPresent -> Offline
-            Assert.Equal("HFP Phone Target (Offline)", discovered[0].BridgeSupportStatus);
+            Assert.Equal("HFP Phone", discovered[0].BridgeSupportStatus);
         }
 
         #endregion
@@ -539,7 +542,7 @@ namespace PhoneMicBridge.Tests
                 "7F:8A:93:71:94:AA",
                 BluetoothDeviceCategory.Phone,
                 "Offline (Disconnected)",
-                "HFP Phone Target (Offline)",
+                "HFP Phone",
                 false,
                 true,
                 false,
@@ -752,3 +755,6 @@ namespace PhoneMicBridge.Tests
         #endregion
     }
 }
+
+
+

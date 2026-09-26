@@ -150,8 +150,6 @@ namespace PhoneMicBridge.Gui.ViewModels
                     _isBluetoothEnabled = value;
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(IsBluetoothDisabled));
-                    OnPropertyChanged(nameof(BluetoothRadioText));
-                    OnPropertyChanged(nameof(BluetoothButtonToolTip));
                 }
             }
         }
@@ -159,10 +157,6 @@ namespace PhoneMicBridge.Gui.ViewModels
         public bool IsBluetoothDisabled => !_isBluetoothEnabled;
         public bool HasBluetoothDevices => _bluetoothDevices.Count > 0;
         public bool IsBluetoothEmpty => _bluetoothDevices.Count == 0;
-        public string BluetoothRadioText => _isBluetoothEnabled ? "BT ON" : "TURN ON";
-        public string BluetoothButtonToolTip => _isBluetoothEnabled
-            ? "Bluetooth Radio: ON (Click to toggle/turn OFF via WinRT API)"
-            : "Bluetooth Radio: OFF (Click to TURN ON directly via WinRT API)";
 
         private bool _isOperatingBluetoothRadio;
         public bool IsOperatingBluetoothRadio
@@ -183,7 +177,6 @@ namespace PhoneMicBridge.Gui.ViewModels
         public ICommand ToggleRouteModeCommand { get; }
         public ICommand OpenBluetoothSettingsCommand { get; }
         public ICommand TurnOnBluetoothCommand { get; }
-        public ICommand ToggleBluetoothRadioCommand { get; }
 
         public DeviceRouteCoordinator(IBridgeApplicationService service)
         {
@@ -194,7 +187,38 @@ namespace PhoneMicBridge.Gui.ViewModels
             ToggleRouteModeCommand = new RelayCommand(() => SetRouteMode(_routeMode == BridgeRouteMode.In ? BridgeRouteMode.Out : BridgeRouteMode.In));
             OpenBluetoothSettingsCommand = new RelayCommand(() => _service.OpenBluetoothSettings());
             TurnOnBluetoothCommand = new RelayCommand(async () => await TurnOnBluetoothAsync(), () => !IsOperatingBluetoothRadio);
-            ToggleBluetoothRadioCommand = new RelayCommand(async () => await ToggleBluetoothRadioAsync(), () => !IsOperatingBluetoothRadio);
+            
+            _service.RadioStateChanged += OnRadioStateChanged;
+        }
+
+        private void OnRadioStateChanged(object? sender, bool isEnabled)
+        {
+            var app = System.Windows.Application.Current;
+            if (app?.Dispatcher != null && !app.Dispatcher.CheckAccess())
+            {
+                app.Dispatcher.InvokeAsync(() => HandleRadioState(isEnabled));
+            }
+            else
+            {
+                HandleRadioState(isEnabled);
+            }
+        }
+
+        private void HandleRadioState(bool isEnabled)
+        {
+            IsBluetoothEnabled = isEnabled;
+            if (isEnabled)
+            {
+                _ = LoadDevicesAsync();
+            }
+            else
+            {
+                _bluetoothDevices.Clear();
+                _selectedBluetoothDevice = null;
+                OnPropertyChanged(nameof(SelectedBluetoothDeviceId));
+                OnPropertyChanged(nameof(HasBluetoothDevices));
+                OnPropertyChanged(nameof(IsBluetoothEmpty));
+            }
         }
 
         public async Task<BluetoothRadioStateResult> TurnOnBluetoothAsync()
@@ -226,34 +250,6 @@ namespace PhoneMicBridge.Gui.ViewModels
             {
                 IsOperatingBluetoothRadio = false;
                 System.Windows.Input.CommandManager.InvalidateRequerySuggested();
-            }
-        }
-
-        public async Task<BluetoothRadioStateResult> ToggleBluetoothRadioAsync()
-        {
-            if (IsOperatingBluetoothRadio)
-            {
-                return BluetoothRadioStateResult.Failed;
-            }
-
-            try
-            {
-                IsOperatingBluetoothRadio = true;
-                bool targetState = !_isBluetoothEnabled;
-                var result = await _service.SetBluetoothRadioStateAsync(targetState).ConfigureAwait(true);
-                if (result == BluetoothRadioStateResult.Success || result == BluetoothRadioStateResult.AlreadyInDesiredState)
-                {
-                    await LoadDevicesAsync().ConfigureAwait(true);
-                }
-                else if (result == BluetoothRadioStateResult.DeniedByUser || result == BluetoothRadioStateResult.DeniedBySystem)
-                {
-                    _service.OpenBluetoothSettings();
-                }
-                return result;
-            }
-            finally
-            {
-                IsOperatingBluetoothRadio = false;
             }
         }
 
@@ -398,6 +394,7 @@ namespace PhoneMicBridge.Gui.ViewModels
         {
             if (_isDisposed) return;
             _isDisposed = true;
+            _service.RadioStateChanged -= OnRadioStateChanged;
             _deviceLoadLock.Dispose();
         }
     }

@@ -19,9 +19,13 @@ namespace PhoneMicBridge.Tests
             public bool LastRequestedState { get; private set; }
             public bool OpenSettingsCalled { get; private set; }
             public bool OpenPrivacyCalled { get; private set; }
-#pragma warning disable CS0067
             public event EventHandler<bool>? RadioStateChanged;
-#pragma warning restore CS0067
+            
+            public void TriggerExternalStateChange(bool newState)
+            {
+                RadioEnabled = newState;
+                RadioStateChanged?.Invoke(this, newState);
+            }
 
             public bool IsRadioEnabled()
             {
@@ -179,87 +183,6 @@ namespace PhoneMicBridge.Tests
         }
 
         [Fact]
-        public async Task DeviceRouteCoordinator_TurnOnBluetoothCommand_WhenDeniedByUser_FallsBackToSettings()
-        {
-            // Arrange
-            var mockController = new MockBluetoothRadioController
-            {
-                RadioEnabled = false,
-                ResultToReturn = BluetoothRadioStateResult.DeniedByUser
-            };
-
-            using var service = new BridgeApplicationService(
-                diagnosticsEngine: null,
-                radioController: mockController);
-
-            var coordinator = CreateInstance("PhoneMicBridge.Gui.ViewModels.DeviceRouteCoordinator", service);
-
-            // Act
-            var turnOnMethod = coordinator.GetType().GetMethod("TurnOnBluetoothAsync")!;
-            var task = (Task<BluetoothRadioStateResult>)turnOnMethod.Invoke(coordinator, null)!;
-            var result = await task;
-
-            // Assert
-            Assert.Equal(BluetoothRadioStateResult.DeniedByUser, result);
-            Assert.True(mockController.OpenSettingsCalled);
-            Assert.False(GetProp<bool>(coordinator, "IsOperatingBluetoothRadio"));
-        }
-
-        [Fact]
-        public async Task DeviceRouteCoordinator_ToggleBluetoothRadioCommand_InvertsRadioState()
-        {
-            // Arrange
-            var mockController = new MockBluetoothRadioController
-            {
-                RadioEnabled = false,
-                ResultToReturn = BluetoothRadioStateResult.Success
-            };
-
-            using var service = new BridgeApplicationService(
-                diagnosticsEngine: null,
-                radioController: mockController);
-
-            var coordinator = CreateInstance("PhoneMicBridge.Gui.ViewModels.DeviceRouteCoordinator", service);
-            var loadMethod = coordinator.GetType().GetMethod("LoadDevicesAsync")!;
-            var loadTask = (Task)loadMethod.Invoke(coordinator, null)!;
-            await loadTask;
-
-            // Act: Toggle from False to True
-            var toggleMethod = coordinator.GetType().GetMethod("ToggleBluetoothRadioAsync")!;
-            var task1 = (Task<BluetoothRadioStateResult>)toggleMethod.Invoke(coordinator, null)!;
-            var res1 = await task1;
-
-            // Assert
-            Assert.Equal(BluetoothRadioStateResult.Success, res1);
-            Assert.True(mockController.LastRequestedState);
-
-            // Act 2: Toggle from True to False
-            var task2 = (Task<BluetoothRadioStateResult>)toggleMethod.Invoke(coordinator, null)!;
-            var res2 = await task2;
-            Assert.Equal(BluetoothRadioStateResult.Success, res2);
-            Assert.False(mockController.LastRequestedState);
-        }
-
-        [Fact]
-        public void MainViewModel_ExposesProgrammaticBluetoothCommands()
-        {
-            // Arrange
-            var mockController = new MockBluetoothRadioController();
-            using var service = new BridgeApplicationService(
-                diagnosticsEngine: null,
-                radioController: mockController);
-
-            var vm = CreateInstance("PhoneMicBridge.Gui.ViewModels.MainViewModel", service);
-
-            // Assert
-            Assert.NotNull(GetProp<ICommand>(vm, "TurnOnBluetoothCommand"));
-            Assert.NotNull(GetProp<ICommand>(vm, "ToggleBluetoothRadioCommand"));
-            Assert.False(GetProp<bool>(vm, "IsOperatingBluetoothRadio"));
-            Assert.NotNull(GetProp<string>(vm, "BluetoothRadioText"));
-            Assert.NotNull(GetProp<string>(vm, "BluetoothButtonToolTip"));
-        }
-
-        [Fact]
         public async Task BluetoothDeviceDiscovery_SetBluetoothRadioStateAsync_InvokesSuppliedController()
         {
             // Arrange
@@ -301,5 +224,29 @@ namespace PhoneMicBridge.Tests
             // Assert: Boolean result returned cleanly without throwing exceptions
             Assert.True(isEnabled || !isEnabled);
         }
+        [Fact]
+        public async Task ExternalRadioToggle_FiresEvent_UpdatesMainViewModel()
+        {
+            var mockController = new MockBluetoothRadioController { RadioEnabled = false };
+            using var service = new BridgeApplicationService(null, mockController);
+            var vm = CreateInstance("PhoneMicBridge.Gui.ViewModels.MainViewModel", service);
+            
+            var loadMethod = vm.GetType().GetMethod("LoadDevicesAsync")!;
+            await (Task)loadMethod.Invoke(vm, null)!;
+            
+            var isEnabledProperty = vm.GetType().GetProperty("IsBluetoothEnabled")!;
+            Assert.False((bool)isEnabledProperty.GetValue(vm));
+            
+            mockController.TriggerExternalStateChange(true);
+            await Task.Delay(250); // Allow async background diagnostic refresh to publish
+            
+            Assert.True((bool)isEnabledProperty.GetValue(vm), "MainViewModel failed to react to external WinRT Radio state changes");
+        }
     }
 }
+
+
+
+
+
+

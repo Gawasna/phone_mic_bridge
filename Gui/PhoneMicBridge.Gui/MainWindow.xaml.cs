@@ -38,12 +38,21 @@ namespace PhoneMicBridge.Gui
             InitializeComponent();
         }
 
-        private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
+                private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             if (DataContext is MainViewModel vm)
             {
                 // Breakpoint 1050px: Compacted HUD (720x680) vs Fullscreen Studio (1920x1080)
                 vm.IsCompactMode = e.NewSize.Width < 1050;
+                vm.WindowWidth = e.NewSize.Width;
+            }
+        }
+
+        private void BtDisabledToggle_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.Primitives.ToggleButton toggle && toggle.Visibility != Visibility.Visible)
+            {
+                toggle.IsChecked = false;
             }
         }
 
@@ -78,3 +87,5 @@ namespace PhoneMicBridge.Gui
         }
     }
 }
+
+

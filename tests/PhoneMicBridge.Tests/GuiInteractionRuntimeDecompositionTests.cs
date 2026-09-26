@@ -26,6 +26,9 @@ namespace PhoneMicBridge.Tests
             public BridgeUiSnapshot CurrentSnapshot { get; set; } = BridgeUiSnapshot.Initial();
 #pragma warning disable CS0067
             public event EventHandler<BridgeUiSnapshot>? SnapshotChanged;
+#pragma warning disable CS0067
+        public event EventHandler<bool>? RadioStateChanged;
+#pragma warning restore CS0067
 #pragma warning restore CS0067
 
             public List<AudioDeviceDto> CaptureList { get; set; } = new()
@@ -389,4 +392,5 @@ namespace PhoneMicBridge.Tests
         }
     }
 }
+
 

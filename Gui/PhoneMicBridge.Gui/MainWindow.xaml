@@ -373,68 +373,155 @@
                 <!-- Group 2: Select Section (Right Group, 504px width alignment from Wireframe v0.0.2) -->
                 <!-- Contains Client Section (Cyan subtle border) and Devices Section (Pink subtle border) -->
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
-                    <!-- ========================================================= -->
-                    <!-- CLIENT SECTION (Source: Bluetooth Client Phone/Headset)   -->
-                    <!-- Cyan Accent from Wireframe v0.0.2 (#B9FFFD)               -->
-                    <!-- ========================================================= -->
-                    <Border Background="{StaticResource TechCyanBgBrush}" BorderBrush="{StaticResource TechCyanBorderBrush}" BorderThickness="1" CornerRadius="2" Width="244" Height="38" Padding="4,1" Margin="0,0,8,0">
-                        <DockPanel LastChildFill="True">
-                            <!-- Category Glyph Icon (Matching Figma node 30:406) -->
-                            <Border Width="22" Height="22" Background="#CCFBF1" CornerRadius="2" Margin="0,0,4,0" DockPanel.Dock="Left" VerticalAlignment="Center">
-                                <Path Data="M 6 2 H 18 A 2 2 0 0 1 20 4 V 20 A 2 2 0 0 1 18 22 H 6 A 2 2 0 0 1 4 20 V 4 A 2 2 0 0 1 6 2 Z M 12 18 A 1 1 0 1 0 12 20 A 1 1 0 1 0 12 18 Z" 
-                                      Stroke="{StaticResource TechCyanBrush}" StrokeThickness="1.2" Fill="Transparent" Stretch="Uniform" Width="10" Height="12" />
-                            </Border>
-
-                            <!-- Settings shortcut button -->
-                            <Button DockPanel.Dock="Right" Command="{Binding OpenBluetoothSettingsCommand}" Style="{StaticResource ToolbarButton}" Width="22" Height="24" Padding="0" Margin="2,0,0,0" ToolTip="Open Windows Bluetooth Settings (ms-settings:bluetooth)">
-                                <Path Data="M 12 15 A 3 3 0 1 0 12 9 A 3 3 0 1 0 12 15 M 19.4 15 A 1.65 1.65 0 0 0 19.73 16.82 L 19.8 16.9 A 2 2 0 1 1 17 19.7 L 16.9 19.6 A 1.65 1.65 0 0 0 15 19.4 A 1.65 1.65 0 0 0 13.5 20.9 L 13.5 21 A 2 2 0 1 1 9.5 21 L 9.5 20.9 A 1.65 1.65 0 0 0 8 19.4 A 1.65 1.65 0 0 0 6.18 19.73 L 6.1 19.8 A 2 2 0 1 1 3.3 17 L 3.4 16.9 A 1.65 1.65 0 0 0 3.6 15 A 1.65 1.65 0 0 0 2.1 13.5 L 2 13.5 A 2 2 0 1 1 2 9.5 L 2.1 9.5 A 1.65 1.65 0 0 0 3.6 8 A 1.65 1.65 0 0 0 3.27 6.18 L 3.2 6.1 A 2 2 0 1 1 6 3.3 L 6.1 3.4 A 1.65 1.65 0 0 0 8 3.6 A 1.65 1.65 0 0 0 9.5 2.1 L 9.5 2 A 2 2 0 1 1 13.5 2 L 13.5 2.1 A 1.65 1.65 0 0 0 15 3.6 A 1.65 1.65 0 0 0 16.82 3.27 L 16.9 3.2 A 2 2 0 1 1 19.7 6 L 19.6 6.1 A 1.65 1.65 0 0 0 19.4 8 A 1.65 1.65 0 0 0 20.9 9.5 L 21 9.5 A 2 2 0 1 1 21 13.5 L 20.9 13.5 A 1.65 1.65 0 0 0 19.4 15 Z" 
-                                      Stroke="#6B7280" StrokeThickness="1.2" Width="10" Height="10" Stretch="Uniform" />
-                            </Button>
-
-                            <!-- WinRT Radio Power Button (from commit 1b99a7b9) -->
-                            <Button DockPanel.Dock="Right" Command="{Binding ToggleBluetoothRadioCommand}" Height="24" Padding="5,0" Margin="2,0,0,0" ToolTip="{Binding BluetoothButtonToolTip}">
-                                <Button.Style>
-                                    <Style TargetType="Button" BasedOn="{StaticResource ToolbarButton}">
-                                        <Setter Property="Background" Value="#FFFFFF" />
-                                        <Setter Property="BorderBrush" Value="#CBD5E1" />
+                                    <!-- ========================================================= -->
+                <!-- CLIENT SECTION (Source: Bluetooth Client Phone/Headset)   -->
+                <!-- Cyan Accent from Wireframe v0.0.2 (#B9FFFD)               -->
+                <!-- ========================================================= -->
+                <Border Grid.Column="2" Background="{StaticResource TechCyanBgBrush}" BorderBrush="{StaticResource TechCyanBorderBrush}" BorderThickness="1" CornerRadius="2" Height="38" Padding="4,1" Margin="0,0,8,0">
+                    <DockPanel LastChildFill="True">
+                        <!-- Bluetooth Defensive UX Container -->
+                        <Grid>
+                            <!-- Real ComboBox (Active when BT is Enabled) -->
+                            <ComboBox ItemsSource="{Binding BluetoothDevices}" 
+                                      SelectedItem="{Binding SelectedBluetoothDevice, Mode=TwoWay}"
+                                      Height="26" VerticalContentAlignment="Center" HorizontalContentAlignment="Stretch" Background="#FFFFFF" BorderBrush="{StaticResource DarkBorderBrush}" ToolTip="Select paired Bluetooth client (Phone/Headset)">
+                                <ComboBox.Style>
+                                    <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+                                        <Setter Property="Visibility" Value="Visible" />
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsBluetoothEnabled}" Value="True">
-                                                <Setter Property="Background" Value="{StaticResource TechGreenBgBrush}" />
-                                                <Setter Property="BorderBrush" Value="{StaticResource TechGreenBorderBrush}" />
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding IsOperatingBluetoothRadio}" Value="True">
-                                                <Setter Property="IsEnabled" Value="False" />
-                                                <Setter Property="Opacity" Value="0.6" />
+                                            <DataTrigger Binding="{Binding IsBluetoothEnabled}" Value="False">
+                                                <Setter Property="Visibility" Value="Collapsed" />
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
-                                </Button.Style>
-                                <TextBlock Text="{Binding BluetoothRadioText}" FontSize="8" FontWeight="Bold" Foreground="{Binding IsBluetoothEnabled, Converter={StaticResource StatusFgConv}}" VerticalAlignment="Center" />
-                            </Button>
-
-                            <!-- Bluetooth Device ComboBox -->
-                            <ComboBox ItemsSource="{Binding BluetoothDevices}" 
-                                      SelectedItem="{Binding SelectedBluetoothDevice, Mode=TwoWay}"
-                                      Height="26" VerticalContentAlignment="Center" Background="#FFFFFF" BorderBrush="{StaticResource DarkBorderBrush}" ToolTip="Select paired Bluetooth client (Phone/Headset)">
+                                </ComboBox.Style>
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
-                                        <DockPanel LastChildFill="True">
-                                            <!-- Support Status Badge (Matching node 28:34) -->
-                                            <Border CornerRadius="1" Padding="3,1" Margin="4,0,0,0" DockPanel.Dock="Right" Background="#E0F2FE" BorderBrush="#BAE6FD" BorderThickness="1">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" /> <!-- Placeholder Icon -->
+                                                <ColumnDefinition Width="240*" MinWidth="190" MaxWidth="240" />    <!-- Name -->
+                                                <ColumnDefinition Width="130*" MinWidth="30" MaxWidth="130" />     <!-- Responsive Gap -->
+                                                <ColumnDefinition Width="Auto" MaxWidth="165" />                   <!-- Support Status -->
+                                                <ColumnDefinition Width="Auto" />                                  <!-- Dot -->
+                                            </Grid.ColumnDefinitions>
+
+                                            <!-- Dynamic SVG Icon (Shows at w >= 1400) -->
+                                            <Border Grid.Column="0" CornerRadius="1" Padding="1" Margin="0,0,4,0" Background="#F1F5F9"
+                                                    Width="16" Height="16" VerticalAlignment="Center"
+                                                    Visibility="{Binding DataContext.ShowDeviceIcon, RelativeSource={RelativeSource AncestorType=ComboBox}, Converter={StaticResource BoolToVisConv}}">
+                                                <ContentControl Foreground="#64748B" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+                                                    <ContentControl.Style>
+                                                        <Style TargetType="ContentControl">
+                                                            <Setter Property="Template" Value="{StaticResource Icon_Ear}" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding CategoryText}" Value="PHONE">
+                                                                    <Setter Property="Template" Value="{StaticResource Icon_Smartphone}" />
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding CategoryText}" Value="HEADSET">
+                                                                    <Setter Property="Template" Value="{StaticResource Icon_Headset}" />
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding CategoryText}" Value="SPEAKER">
+                                                                    <Setter Property="Template" Value="{StaticResource Icon_Speaker}" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </ContentControl.Style>
+                                                </ContentControl>
+                                            </Border>
+
+                                            <!-- Device Name in Bold (Always visible) -->
+                                            <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12" FontWeight="Normal" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+
+                                            <!-- Support Status Badge (Shows at w >= 900) -->
+                                            <Border Grid.Column="3" CornerRadius="1" Padding="3,1" Margin="4,0,0,0" Background="#E0F2FE" BorderBrush="#BAE6FD" BorderThickness="1"
+                                                    Visibility="{Binding DataContext.ShowSupportStatus, RelativeSource={RelativeSource AncestorType=ComboBox}, Converter={StaticResource BoolToVisConv}}">
                                                 <TextBlock Text="{Binding BridgeSupportStatus}" FontSize="8" FontWeight="Bold" Foreground="#0369A1" />
                                             </Border>
-                                            <!-- Category Glyph Text -->
-                                            <Border CornerRadius="1" Padding="2,0" Margin="0,0,4,0" DockPanel.Dock="Left" Background="#CCFBF1">
-                                                <TextBlock Text="{Binding CategoryText}" FontSize="7" FontWeight="Bold" Foreground="{StaticResource TechCyanBrush}" />
-                                            </Border>
-                                            <!-- Device Name in Bold (Matching node 28:34) -->
-                                            <TextBlock Text="{Binding Name}" FontSize="10" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                                        </DockPanel>
+
+                                            <!-- Online/Offline Status Dot (Absolute Right Edge) -->
+                                            <Ellipse Grid.Column="4" Width="6" Height="6" Margin="6,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                                <Ellipse.Style>
+                                                    <Style TargetType="Ellipse">
+                                                        <Setter Property="Fill" Value="#D1D5DB" /> <!-- Offline: Gray -->
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsConnected}" Value="True">
+                                                                <Setter Property="Fill" Value="#10B981" /> <!-- Online: Green -->
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Ellipse.Style>
+                                            </Ellipse>
+                                        </Grid>
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
-                        </DockPanel>
-                    </Border>
+
+                            <!-- Fake ComboBox / Defensive UX (Active when BT is Disabled) -->
+                            <ToggleButton x:Name="BtDisabledToggle" Height="26" ToolTip="Bluetooth is disabled. Click to resolve." IsVisibleChanged="BtDisabledToggle_IsVisibleChanged">
+                                <ToggleButton.Style>
+                                    <Style TargetType="ToggleButton">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsBluetoothEnabled}" Value="False">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ToggleButton.Style>
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" 
+                                                BorderBrush="{StaticResource DarkBorderBrush}" BorderThickness="1">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="20" />
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Text="Bluetooth Offline" Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" FontSize="11" VerticalAlignment="Center" Margin="6,0" FontStyle="Italic" />
+                                                <Border Grid.Column="1" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" BorderBrush="{StaticResource DarkBorderBrush}" BorderThickness="1,0,0,0">
+                                                    <Path Data="M0,0 L3.5,4 L7,0" Fill="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" VerticalAlignment="Center" HorizontalAlignment="Center" />
+                                                </Border>
+                                            </Grid>
+                                        </Border>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            
+                            <!-- Native Desktop-style Dropdown -->
+                            <Popup IsOpen="{Binding IsChecked, ElementName=BtDisabledToggle}" StaysOpen="False" PlacementTarget="{Binding ElementName=BtDisabledToggle}" Placement="Bottom" AllowsTransparency="True" PopupAnimation="Fade">
+                                <Border Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" 
+                                        BorderBrush="{StaticResource DarkBorderBrush}" 
+                                        BorderThickness="1" 
+                                        MinWidth="{Binding ActualWidth, ElementName=BtDisabledToggle}" 
+                                        Margin="0,1,0,0">
+                                    <StackPanel Margin="1">
+                                        <TextBlock Text="Bluetooth is turned off" Margin="24,6,8,4" Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" FontSize="11" />
+                                        <Separator Margin="0,2" Background="{StaticResource BorderBrush}"/>
+                                        <Button Command="{Binding TurnOnBluetoothCommand}" Background="Transparent" BorderThickness="0" Padding="0">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border x:Name="Bg" Background="Transparent" Padding="24,6,8,6">
+                                                        <TextBlock x:Name="Txt" Text="Turn on Bluetooth" Foreground="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" FontSize="11" />
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter TargetName="Bg" Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                                                            <Setter TargetName="Txt" Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}" />
+                                                        </Trigger>
+                                                        <Trigger Property="IsEnabled" Value="False">
+                                                            <Setter TargetName="Txt" Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+                                    </StackPanel>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </DockPanel>
+                </Border>
 
                     <!-- ========================================================= -->
                     <!-- DEVICES SECTION (Target: Host PC Endpoint)                -->
@@ -959,3 +1046,4 @@
         </Border>
     </Grid>
 </Window>
+

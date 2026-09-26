@@ -27,6 +27,7 @@ namespace PhoneMicBridge.Gui.ViewModels
 
         private BridgeUiSnapshot _snapshot;
         private bool _isCompactMode = true;
+        private double _windowWidth = 720;
         private bool _isDisposed;
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -148,6 +149,26 @@ namespace PhoneMicBridge.Gui.ViewModels
             _ => "SAFETY INTERLOCK: READY (All checks passed)"
         };
 
+                public double WindowWidth
+        {
+            get => _windowWidth;
+            set
+            {
+                if (_windowWidth != value)
+                {
+                    _windowWidth = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(ShowSupportStatus));
+                    
+                    OnPropertyChanged(nameof(ShowDeviceIcon));
+                }
+            }
+        }
+
+        public bool ShowSupportStatus => WindowWidth >= 900;
+        
+        public bool ShowDeviceIcon => WindowWidth >= 1400;
+
         public bool IsCompactMode
         {
             get => _isCompactMode;
@@ -230,15 +251,12 @@ namespace PhoneMicBridge.Gui.ViewModels
         public bool HasBluetoothDevices => _routeCoordinator.HasBluetoothDevices;
         public bool IsBluetoothEmpty => _routeCoordinator.IsBluetoothEmpty;
         public bool IsOperatingBluetoothRadio => _routeCoordinator.IsOperatingBluetoothRadio;
-        public string BluetoothRadioText => _routeCoordinator.BluetoothRadioText;
-        public string BluetoothButtonToolTip => _routeCoordinator.BluetoothButtonToolTip;
 
         public ICommand SetRouteInCommand => _routeCoordinator.SetRouteInCommand;
         public ICommand SetRouteOutCommand => _routeCoordinator.SetRouteOutCommand;
         public ICommand ToggleRouteModeCommand => _routeCoordinator.ToggleRouteModeCommand;
         public ICommand OpenBluetoothSettingsCommand => _routeCoordinator.OpenBluetoothSettingsCommand;
         public ICommand TurnOnBluetoothCommand => _routeCoordinator.TurnOnBluetoothCommand;
-        public ICommand ToggleBluetoothRadioCommand => _routeCoordinator.ToggleBluetoothRadioCommand;
 
         public Task LoadDevicesAsync() => _routeCoordinator.LoadDevicesAsync();
 
@@ -675,3 +693,5 @@ namespace PhoneMicBridge.Gui.ViewModels
         }
     }
 }
+
+

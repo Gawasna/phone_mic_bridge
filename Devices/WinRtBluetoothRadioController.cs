@@ -49,7 +49,11 @@ namespace PhoneMicBridge.Devices
                             if (!_isInitialized)
                             {
                                 _activeRadio = btRadio;
-                                _cachedIsOn = (btRadio.State == RadioState.On);
+                                
+                                bool actualState = (btRadio.State == RadioState.On);
+                                bool shouldFireChange = (actualState != _cachedIsOn);
+                                
+                                _cachedIsOn = actualState;
                                 _isInitialized = true;
 
                                 btRadio.StateChanged += (sender, args) =>
@@ -61,6 +65,12 @@ namespace PhoneMicBridge.Devices
                                         RadioStateChanged?.Invoke(this, newState);
                                     }
                                 };
+                                
+                                // Broadcast initial truth if we incorrectly assumed 'false' at startup
+                                if (shouldFireChange)
+                                {
+                                    RadioStateChanged?.Invoke(this, actualState);
+                                }
                             }
                         }
                         return _cachedIsOn;
@@ -72,7 +82,7 @@ namespace PhoneMicBridge.Devices
                 // Fallback to registry verification if WinRT initialization fails
             }
 
-            _isInitialized = true;
+            // DO NOT set _isInitialized = true on timeout/failure, allow subsequent calls to try again
             return _cachedIsOn;
         }
 

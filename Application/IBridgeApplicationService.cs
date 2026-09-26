@@ -14,6 +14,7 @@ namespace PhoneMicBridge.Application
     {
         BridgeUiSnapshot CurrentSnapshot { get; }
         event EventHandler<BridgeUiSnapshot>? SnapshotChanged;
+        event EventHandler<bool>? RadioStateChanged;
         AudioMeterValues GetCurrentMeterValues();
 
         Task<BridgeUiSnapshot> RunPreflightDiagnosticsAsync(CancellationToken cancellationToken = default);
