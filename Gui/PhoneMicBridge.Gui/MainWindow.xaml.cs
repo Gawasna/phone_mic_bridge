@@ -63,6 +63,11 @@ namespace PhoneMicBridge.Gui
                 MessageBoxImage.Information);
         }
 
+        private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+
         protected override void OnClosing(CancelEventArgs e)
         {
             base.OnClosing(e);

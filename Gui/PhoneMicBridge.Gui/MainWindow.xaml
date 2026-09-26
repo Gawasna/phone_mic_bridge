@@ -231,45 +231,43 @@
         <!-- ROW 0: TOOLBAR (40px)                                             -->
         <!-- Top Menu Items & Global Action Shortcuts                          -->
         <!-- ================================================================= -->
-        <!-- Toolbar: plain text buttons - utility/productivity pattern, no icon noise -->
-        <Border Grid.Row="0" Background="{StaticResource ToolbarBgBrush}" BorderBrush="{StaticResource DarkBorderBrush}" BorderThickness="0,0,0,1" Padding="8,4">
-            <DockPanel LastChildFill="False">
-                <!-- Left: Global Operations -->
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
-                    <Button Style="{StaticResource ToolbarButton}" Command="{Binding RunDiagnosticsCommand}" Margin="0,0,4,0" ToolTip="Run hardware pre-flight checks">
-                        <TextBlock Text="Diagnostics" FontSize="11" FontWeight="SemiBold" />
-                    </Button>
-                    <Button Style="{StaticResource ToolbarButton}" Command="{Binding RefreshDevicesCommand}" Margin="0,0,4,0" ToolTip="Enumerate active Bluetooth and WASAPI endpoints">
-                        <TextBlock Text="Scan Devices" FontSize="11" FontWeight="SemiBold" />
-                    </Button>
-                    <Button Style="{StaticResource ToolbarButton}" Command="{Binding ClearErrorCommand}" IsEnabled="{Binding HasError}" Margin="0,0,4,0" ToolTip="Dismiss current error condition">
-                        <TextBlock Text="Clear Error" FontSize="11" FontWeight="SemiBold" />
-                    </Button>
-                    <Button Style="{StaticResource ToolbarButton}" Command="{Binding BrowseAudioFileCommand}" Margin="0,0,4,0" ToolTip="Select WAV/MP3 file for test playback">
-                        <TextBlock Text="Load Audio" FontSize="11" FontWeight="SemiBold" />
-                    </Button>
-                    <Button Style="{StaticResource ToolbarButton}" Click="EngineSpecsButton_Click" ToolTip="View engine transport specifications">
-                        <TextBlock Text="Specs" FontSize="11" FontWeight="SemiBold" />
-                    </Button>
-                </StackPanel>
+        <!-- Toolbar: native WPF Menu bar (Figma wireframe: File Edit View Tools About Help) -->
+        <DockPanel Grid.Row="0" Background="{StaticResource ToolbarBgBrush}" LastChildFill="False">
+            <!-- Right: state badges (Responsive mode, sample rate, session state) -->
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="8,0">
+                <Border Background="#F3F4F6" BorderBrush="#D1D5DB" BorderThickness="1" CornerRadius="2" Padding="6,2" Margin="0,0,6,0" ToolTip="Responsive layout mode">
+                    <TextBlock Text="{Binding WindowModeText}" FontSize="8" FontFamily="Consolas, monospace" FontWeight="Bold" Foreground="#4B5563" VerticalAlignment="Center" />
+                </Border>
+                <Border Background="#F1F5F9" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="2" Padding="6,2" Margin="0,0,8,0">
+                    <TextBlock Text="16.0 kHz • 16-bit Mono" FontSize="9" FontFamily="Consolas, monospace" FontWeight="Bold" Foreground="#0369A1" VerticalAlignment="Center" />
+                </Border>
+                <Border Background="{Binding Snapshot.State, Converter={StaticResource StatusBgConv}}"
+                        BorderBrush="{Binding Snapshot.State, Converter={StaticResource StatusBorderConv}}"
+                        BorderThickness="1" CornerRadius="2" Padding="8,3">
+                    <TextBlock Text="{Binding StateText}" FontWeight="Bold" FontSize="10"
+                               Foreground="{Binding Snapshot.State, Converter={StaticResource StatusFgConv}}" />
+                </Border>
+            </StackPanel>
 
-                <!-- Right: Responsive Layout Mode, Sampling Rate & Session State Badge -->
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
-                    <Border Background="#F3F4F6" BorderBrush="#D1D5DB" BorderThickness="1" CornerRadius="2" Padding="6,2" Margin="0,0,6,0" ToolTip="Responsive layout mode (Figma v0.0.3 Dual Layout)">
-                        <TextBlock Text="{Binding WindowModeText}" FontSize="8" FontFamily="Consolas, monospace" FontWeight="Bold" Foreground="#4B5563" VerticalAlignment="Center" />
-                    </Border>
-                    <Border Background="#F1F5F9" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="2" Padding="6,2" Margin="0,0,8,0">
-                        <TextBlock Text="16.0 kHz • 16-bit Mono" FontSize="9" FontFamily="Consolas, monospace" FontWeight="Bold" Foreground="#0369A1" VerticalAlignment="Center" />
-                    </Border>
-                    <Border Background="{Binding Snapshot.State, Converter={StaticResource StatusBgConv}}"
-                            BorderBrush="{Binding Snapshot.State, Converter={StaticResource StatusBorderConv}}"
-                            BorderThickness="1" CornerRadius="2" Padding="8,3">
-                        <TextBlock Text="{Binding StateText}" FontWeight="Bold" FontSize="10" 
-                                   Foreground="{Binding Snapshot.State, Converter={StaticResource StatusFgConv}}" />
-                    </Border>
-                </StackPanel>
-            </DockPanel>
-        </Border>
+            <!-- Native Menu bar (Figma: File Edit View Tools About Help) -->
+            <Menu DockPanel.Dock="Left" VerticalAlignment="Center" Background="Transparent" BorderThickness="0">
+                <MenuItem Header="_File">
+                    <MenuItem Header="Load Audio File..." Command="{Binding BrowseAudioFileCommand}" />
+                    <Separator />
+                    <MenuItem Header="E_xit" Click="ExitMenuItem_Click" />
+                </MenuItem>
+                <MenuItem Header="_View">
+                    <MenuItem Header="Engine Specifications" Click="EngineSpecsButton_Click" />
+                </MenuItem>
+                <MenuItem Header="_Tools">
+                    <MenuItem Header="Run Diagnostics" Command="{Binding RunDiagnosticsCommand}" />
+                    <MenuItem Header="Scan Devices" Command="{Binding RefreshDevicesCommand}" />
+                    <Separator />
+                    <MenuItem Header="Clear Error" Command="{Binding ClearErrorCommand}" />
+                </MenuItem>
+                <MenuItem Header="_Help" />
+            </Menu>
+        </DockPanel>
 
         <!-- ================================================================= -->
         <!-- ROW 1: SUBTOOLBAR (48px)                                          -->
@@ -278,8 +276,9 @@
         <!-- Center: Stream Telemetry Strip (Fullscreen Mode / Expanded)       -->
         <!-- Right: Select Section (504px: Client Section + Devices Section)   -->
         <!-- ================================================================= -->
-        <Border Grid.Row="1" Background="{StaticResource SubToolbarBgBrush}" BorderBrush="{StaticResource DarkBorderBrush}" BorderThickness="0,0,0,1" Padding="12,6">
-            <DockPanel LastChildFill="True">
+        <!-- SubToolbar: no top/bottom padding, no telemetry strip (Figma wireframe) -->
+        <Border Grid.Row="1" Background="{StaticResource SubToolbarBgBrush}" BorderBrush="{StaticResource DarkBorderBrush}" BorderThickness="0,1,0,1" Padding="12,0">
+            <DockPanel LastChildFill="False">
                 <!-- Group 1: Action1 (Left Group, 159px width alignment from Figma v0.0.3) -->
                 <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center" Width="159">
                     <!-- ActBtn 1: Start / Stop Button (36x36) -->
@@ -466,18 +465,6 @@
                         </DockPanel>
                     </Border>
                 </StackPanel>
-
-                <!-- Center: Stream Telemetry Strip (Resolves 1257px gap on Fullscreen mode from REVIEW-UX-003) -->
-                <Border HorizontalAlignment="Center" VerticalAlignment="Center" 
-                        Background="#FFFFFF" BorderBrush="{StaticResource DarkBorderBrush}" 
-                        BorderThickness="1" CornerRadius="2" Padding="8,3" Margin="8,0"
-                        Visibility="{Binding IsExpandedMode, Converter={StaticResource BoolToVisConv}}">
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                        <Path Data="M 1 6 L 4 6 L 6 2 L 9 10 L 11 6 L 14 6" Stroke="#0284C7" StrokeThickness="1.3" Width="14" Height="10" Margin="0,0,6,0" VerticalAlignment="Center" />
-                        <TextBlock Text="STREAM TELEMETRY: " FontSize="8" FontWeight="Bold" Foreground="{StaticResource TextMutedBrush}" VerticalAlignment="Center" />
-                        <TextBlock Text="{Binding StreamTelemetrySummary}" FontSize="9" FontFamily="Consolas, monospace" FontWeight="SemiBold" Foreground="{StaticResource TextSecondaryBrush}" VerticalAlignment="Center" />
-                    </StackPanel>
-                </Border>
             </DockPanel>
         </Border>
 
@@ -497,7 +484,7 @@
             <!-- Modeled after Wireframe v0.0.2 SideSection                    -->
             <!-- ============================================================= -->
             <Border Grid.Column="0" BorderBrush="{StaticResource DarkBorderBrush}" BorderThickness="0,0,1,0" Background="{StaticResource SurfaceBrush}">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="10">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="8,4">
                     <StackPanel>
                         <!-- ===================================================== -->
                         <!-- CARD 1: PRESETS SECTION (Figma v0.0.2 Presets)        -->
@@ -614,7 +601,7 @@
             <!-- 3. Logging Console Section                                    -->
             <!-- ============================================================= -->
             <Border Grid.Column="1" Background="{StaticResource BackgroundBrush}">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="12">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="8">
                     <StackPanel>
                         <!-- Error Alert Banner (Visible when HasError) -->
                         <Border Background="{StaticResource TechRedBgBrush}" BorderBrush="{StaticResource TechRedBorderBrush}" BorderThickness="1" CornerRadius="1" Padding="8" Margin="0,0,0,8" Visibility="{Binding HasError, Converter={StaticResource BoolToVisConv}}">
