@@ -57,6 +57,24 @@ class MainActivity : AppCompatActivity() {
 
     // Timeout handler for HyperOS 8-second SCO delay
     private var scoTimeoutRunnable: Runnable? = null
+    private var telecomActiveRunnable: Runnable? = null
+    @Volatile private var isConnectingSco = false
+    @Volatile private var isScoConnectedHandled = false
+
+    private val commDeviceListener = AudioManager.OnCommunicationDeviceChangedListener { device ->
+        appendLog("[COMM_LISTENER] Device changed: ${device?.productName} (${deviceTypeName(device?.type ?: -1)})")
+        if (device?.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO) {
+            triggerFullDuplexSetup("OnCommunicationDeviceChangedListener")
+        }
+    }
+
+    private fun triggerFullDuplexSetup(source: String) {
+        if (isScoConnectedHandled) return
+        isScoConnectedHandled = true
+        scoTimeoutRunnable?.let { mainHandler.removeCallbacks(it) }
+        appendLog("[SETUP] Triggering full-duplex setup from: $source")
+        mainHandler.post { onScoConnected() }
+    }
     
     // SCO state receiver - triggers full-duplex audio setup when HCI link is confirmed
     private val scoReceiver = object : BroadcastReceiver() {
@@ -71,12 +89,10 @@ class MainActivity : AppCompatActivity() {
             }
             appendLog("[SCO_BROADCAST] $stateName")
             if (state == AudioManager.SCO_AUDIO_STATE_CONNECTED) {
-                // Cancel timeout - SCO established successfully
-                scoTimeoutRunnable?.let { mainHandler.removeCallbacks(it) }
-                appendLog("[SCO_BROADCAST] HCI SCO confirmed -> preparing full-duplex endpoints")
-                onScoConnected()
+                triggerFullDuplexSetup("scoReceiver (SCO_AUDIO_STATE_CONNECTED)")
             } else if (state == AudioManager.SCO_AUDIO_STATE_DISCONNECTED) {
                 appendLog("[SCO_BROADCAST] SCO disconnected")
+                isScoConnectedHandled = false
                 stopVuMeter()
                 updateScoUi(AudioManager.SCO_AUDIO_STATE_DISCONNECTED)
             }
@@ -96,11 +112,32 @@ class MainActivity : AppCompatActivity() {
             RECEIVER_EXPORTED
         )
 
+        audioManager.addOnCommunicationDeviceChangedListener(mainExecutor, commDeviceListener)
+
         binding.btnAttempt1.setOnClickListener { connectSco() }
         binding.btnAttempt2.setOnClickListener { connectSco() } // Same method now
         binding.btnStop.setOnClickListener    { releaseAll() }
         binding.btnRecordSample.setOnClickListener { startRecordingSample() }
         binding.btnPlaybackSample.setOnClickListener { playRecordedSample() }
+
+        BridgeConnectionService.onConnectionActive = {
+            mainHandler.post {
+                appendLog("[TELECOM] BridgeConnection ACTIVE (numActive=1 ready for Windows AT+CLCC)")
+                telecomActiveRunnable?.let { mainHandler.removeCallbacks(it) }
+                establishScoHardwareTransport()
+            }
+        }
+        BridgeConnectionService.onBluetoothAudioRouteActive = {
+            mainHandler.post {
+                appendLog("[TELECOM] Bluetooth Call Audio Route Active!")
+                triggerFullDuplexSetup("BridgeConnectionService (Bluetooth route)")
+            }
+        }
+        BridgeConnectionService.onConnectionDisconnected = {
+            mainHandler.post {
+                appendLog("[TELECOM] BridgeConnection disconnected")
+            }
+        }
 
         appendLog("[INIT] SDK ${android.os.Build.VERSION.SDK_INT} | ${android.os.Build.MODEL}")
         appendLog("[INIT] BT enabled: ${isBtEnabled()}")
@@ -109,12 +146,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     // =========================================================================
-    // MAIN SCO CONNECTION METHOD (Web Research Architecture)
+    // MAIN SCO CONNECTION METHOD (Telecom-First Architecture)
     // =========================================================================
     
     private fun connectSco() {
         appendLog("[CONNECT] ═══════════════════════════════════════")
-        appendLog("[CONNECT] Starting SCO connection (Web Research architecture)")
+        appendLog("[CONNECT] Starting SCO connection (Telecom-First architecture)")
         
         // PHASE 0: Pre-flight Checks
         if (!verifyAllPermissionsGranted()) {
@@ -130,9 +167,30 @@ class MainActivity : AppCompatActivity() {
             appendLog("[PHASE1] ✓ Exclusive AudioFocus granted")
         }
         
-        // PHASE 2: System-Level SCO Establishment
+        // PHASE 2A: Trigger Telecom Outgoing Call FIRST
+        updateScoUi(-99) // PENDING state
+        isConnectingSco = true
+        
+        // Fallback timer: If Telecom callback takes > 1.5s, proceed anyway
+        telecomActiveRunnable?.let { mainHandler.removeCallbacks(it) }
+        telecomActiveRunnable = Runnable {
+            appendLog("[TELECOM] Fallback timer triggered, establishing SCO transport...")
+            establishScoHardwareTransport()
+        }
+        mainHandler.postDelayed(telecomActiveRunnable!!, 1500)
+        
+        val callTriggered = BridgeConnectionService.startOutgoingCallSession(this)
+        appendLog("[PHASE2A] Telecom Outgoing Call placed: $callTriggered (Waiting for ACTIVE state...)")
+    }
+
+    private fun establishScoHardwareTransport() {
+        if (!isConnectingSco) return
+        isConnectingSco = false
+        telecomActiveRunnable?.let { mainHandler.removeCallbacks(it) }
+
+        // PHASE 2B: System-Level SCO Establishment AFTER Telecom Call is Active
         audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
-        appendLog("[PHASE2] Audio mode set to MODE_IN_COMMUNICATION")
+        appendLog("[PHASE2B] Audio mode set to MODE_IN_COMMUNICATION")
         
         val btScoDevice = audioManager.availableCommunicationDevices
             .firstOrNull { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO }
@@ -146,18 +204,24 @@ class MainActivity : AppCompatActivity() {
             return
         }
         
-        appendLog("[PHASE2] Found BT_SCO device: '${btScoDevice.productName}'")
+        appendLog("[PHASE2B] Found BT_SCO device: '${btScoDevice.productName}'")
         
         val success = audioManager.setCommunicationDevice(btScoDevice)
         if (!success) {
             appendLog("[ABORT] setCommunicationDevice() returned false")
             return
         }
-        appendLog("[PHASE2] ✓ setCommunicationDevice() successful")
+        appendLog("[PHASE2B] ✓ setCommunicationDevice() successful with active Telecom call session")
+
+        // Direct verification fallback: if device is already BT_SCO, trigger setup after brief settling window
+        mainHandler.postDelayed({
+            if (!isScoConnectedHandled && audioManager.communicationDevice?.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO) {
+                appendLog("[FALLBACK] BT_SCO is active communication device, triggering setup...")
+                triggerFullDuplexSetup("Direct communicationDevice verification")
+            }
+        }, 600)
         
         // PHASE 3: Install 8-Second Timeout for HyperOS
-        updateScoUi(-99) // PENDING state
-        
         scoTimeoutRunnable = Runnable {
             if (audioManager.communicationDevice?.type != AudioDeviceInfo.TYPE_BLUETOOTH_SCO) {
                 appendLog("[TIMEOUT] 8 seconds elapsed, SCO not connected")
@@ -352,9 +416,15 @@ class MainActivity : AppCompatActivity() {
     private fun releaseAll() {
         appendLog("[STOP] Releasing SCO session...")
         
+        isConnectingSco = false
+        isScoConnectedHandled = false
+        telecomActiveRunnable?.let { mainHandler.removeCallbacks(it) }
         scoTimeoutRunnable?.let { mainHandler.removeCallbacks(it) }
         
         stopVuMeter()
+        
+        BridgeConnectionService.endCallSession()
+        appendLog("[STOP] Ended Telecom Call Session")
         
         @Suppress("DEPRECATION")
         audioManager.abandonAudioFocus(null)
