@@ -19,6 +19,11 @@ namespace PhoneMicBridge.Audio
         private MMDevice? _hfpDuplexCaptureDevice;
         private WasapiCapture? _hfpDuplexCapture;
         private bool _isDisposed;
+        
+        // Telemetry for bidirectional traffic monitoring
+        private long _hfpCaptureByteCount = 0;
+        private long _hfpRenderByteCount = 0;
+        private DateTime _lastTelemetryLog = DateTime.UtcNow;
 
         public BridgeState State => _stateMachine.CurrentState;
         public event EventHandler<BridgeState>? StateChanged;
@@ -113,10 +118,20 @@ namespace PhoneMicBridge.Audio
 
             try
             {
-                var outputProvider = OutputMeter.Wrap(Pipeline.GetOutputSampleProvider());
+                var baseProvider = Pipeline.GetOutputSampleProvider();
+                var meterProvider = OutputMeter.Wrap(baseProvider);
+                var telemetryProvider = new TelemetrySampleProvider(meterProvider, bytes => 
+                {
+                    System.Threading.Interlocked.Add(ref _hfpRenderByteCount, bytes);
+                });
 
                 _wasapiOut = new WasapiOut(_renderDevice, AudioClientShareMode.Shared, false, 50);
-                _wasapiOut.Init(outputProvider);
+                _wasapiOut.Init(telemetryProvider);
+                
+                _wasapiOut.PlaybackStopped += (s, e) =>
+                {
+                    Console.WriteLine($"[HFP-RENDER] Playback stopped. Total bytes written: {_hfpRenderByteCount}");
+                };
 
                 // Full-Duplex HFP keep-alive: BthHFAud.sys requires active capture stream to maintain SCO link
                 _hfpDuplexCaptureDevice ??= DeviceDiscovery.FindMatchingHfpCaptureDevice(_renderDevice);
@@ -127,9 +142,25 @@ namespace PhoneMicBridge.Audio
                         _hfpDuplexCapture = new WasapiCapture(_hfpDuplexCaptureDevice, true, 50);
                         _hfpDuplexCapture.DataAvailable += (s, e) =>
                         {
-                            // Drain buffer to satisfy driver full-duplex requirement
+                            // CRITICAL: Active buffer consumption to satisfy SCO bidirectional requirement
+                            // Empty handler = passive drain, may not generate HCI-level read I/O
+                            System.Threading.Interlocked.Add(ref _hfpCaptureByteCount, e.BytesRecorded);
+                            
+                            // Log telemetry every 2 seconds
+                            var now = DateTime.UtcNow;
+                            if ((now - _lastTelemetryLog).TotalSeconds >= 2.0)
+                            {
+                                _lastTelemetryLog = now;
+                                long captureMB = _hfpCaptureByteCount / (1024 * 1024);
+                                long renderMB = _hfpRenderByteCount / (1024 * 1024);
+                                double ratio = _hfpRenderByteCount > 0 
+                                    ? (double)_hfpCaptureByteCount / _hfpRenderByteCount 
+                                    : 0.0;
+                                Console.WriteLine($"[HFP-DUPLEX] Capture: {captureMB} MB | Render: {renderMB} MB | Ratio: {ratio:F2} | BytesThisPacket: {e.BytesRecorded}");
+                            }
                         };
                         _hfpDuplexCapture.StartRecording();
+                        Console.WriteLine($"[HFP-DUPLEX] Started capture from: {_hfpDuplexCaptureDevice.FriendlyName} ({_hfpDuplexCaptureDevice.AudioClient.MixFormat.SampleRate} Hz)");
                     }
                     catch (Exception ex)
                     {
