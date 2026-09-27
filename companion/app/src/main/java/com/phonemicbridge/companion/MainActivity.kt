@@ -55,7 +55,7 @@ class MainActivity : AppCompatActivity() {
     @Volatile private var isStartingVu = false
     private var playbackSampleJob: Job? = null
 
-    // SCO state receiver (logging / diagnostics only)
+    // SCO state receiver - triggers routing and VU meter when HCI link is confirmed
     private val scoReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val state = intent.getIntExtra(AudioManager.EXTRA_SCO_AUDIO_STATE, -1)
@@ -67,6 +67,12 @@ class MainActivity : AppCompatActivity() {
                 else -> "UNKNOWN($state)"
             }
             appendLog("[SCO_BROADCAST] $stateName")
+            if (state == AudioManager.SCO_AUDIO_STATE_CONNECTED) {
+                // HCI SCO link confirmed at kernel level (btscoOn=1 will follow).
+                // Now enforce BT_SCO routing and start VU meter.
+                appendLog("[SCO_BROADCAST] HCI SCO confirmed -> activating BT_SCO device routing")
+                activateBtScoDevice()
+            }
         }
     }
 
@@ -143,12 +149,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     // -------------------------------------------------------------------------
-    // Attempt 2: Modern setCommunicationDevice (API 31+)
+    // Attempt 2: Telecom self-managed call (only confirmed path for HCI SCO on HyperOS)
+    // Flow: addNewIncomingCall -> onCreateIncomingConnection -> setActive -> ROUTE_BLUETOOTH
+    //       -> HeadsetService.connectAudio() -> HCI SCO link -> btscoOn=1
+    // onConnectionActive callback then calls activateBtScoDevice for setCommunicationDevice + VU
     // -------------------------------------------------------------------------
     private fun tryAttempt2() {
         if (!checkPermissions()) return
-        appendLog("[A2] Activating BT SCO via setCommunicationDevice()...")
-        activateBtScoDevice()
+        appendLog("[A2] Starting Telecom self-managed call session for HCI SCO...")
+        val ok = BridgeConnectionService.startCallSession(this)
+        appendLog("[A2] startCallSession returned: $ok")
+        if (!ok) {
+            appendLog("[A2] FAIL: Telecom session could not start. Check MANAGE_OWN_CALLS permission.")
+        }
+        updateScoUi(-99)
     }
 
     private fun activateBtScoDevice() {
