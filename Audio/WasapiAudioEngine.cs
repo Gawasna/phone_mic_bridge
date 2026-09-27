@@ -97,6 +97,12 @@ namespace PhoneMicBridge.Audio
                 ReadFully = true
             };
 
+            try
+            {
+                _captureDevice.AudioSessionManager.AudioSessionControl.SetDuckingPreference(true);
+            }
+            catch { }
+
             _wasapiCapture.DataAvailable += (s, e) =>
             {
                 if (Pipeline.IsMicEnabled)
@@ -127,6 +133,15 @@ namespace PhoneMicBridge.Audio
 
                 _wasapiOut = new WasapiOut(_renderDevice, AudioClientShareMode.Shared, false, 50);
                 _wasapiOut.Init(telemetryProvider);
+
+                try
+                {
+                    _renderDevice.AudioSessionManager.AudioSessionControl.SetDuckingPreference(true);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[DUCKING] Failed to set ducking preference on render device: {ex.Message}");
+                }
                 
                 _wasapiOut.PlaybackStopped += (s, e) =>
                 {
@@ -140,6 +155,11 @@ namespace PhoneMicBridge.Audio
                     try
                     {
                         _hfpDuplexCapture = new WasapiCapture(_hfpDuplexCaptureDevice, true, 50);
+                        try
+                        {
+                            _hfpDuplexCaptureDevice.AudioSessionManager.AudioSessionControl.SetDuckingPreference(true);
+                        }
+                        catch { }
                         _hfpDuplexCapture.DataAvailable += (s, e) =>
                         {
                             // CRITICAL: Active buffer consumption to satisfy SCO bidirectional requirement

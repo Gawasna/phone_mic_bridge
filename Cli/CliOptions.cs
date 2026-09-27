@@ -5,6 +5,7 @@ namespace PhoneMicBridge.Cli
         Mix,
         ListInputs,
         ListOutputs,
+        ListDevices,
         TestTone,
         PlayFile,
         Help
@@ -35,6 +36,10 @@ namespace PhoneMicBridge.Cli
                 string arg = args[i].ToLowerInvariant();
                 switch (arg)
                 {
+                    case "--list-devices":
+                    case "--list":
+                        options.Command = CliCommand.ListDevices;
+                        return options;
                     case "--list-inputs":
                         options.Command = CliCommand.ListInputs;
                         return options;

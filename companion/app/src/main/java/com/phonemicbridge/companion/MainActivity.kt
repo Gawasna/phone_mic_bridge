@@ -574,8 +574,9 @@ class MainActivity : AppCompatActivity() {
                 ).coerceAtLeast(3200)
 
                 val audioAttributes = AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+                    .setUsage(AudioAttributes.USAGE_ALARM)
                     .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                    .setFlags(AudioAttributes.FLAG_AUDIBILITY_ENFORCED)
                     .build()
 
                 val format = AudioFormat.Builder()
@@ -599,10 +600,27 @@ class MainActivity : AppCompatActivity() {
                     player.setPreferredDevice(speakerDevice)
                 }
 
-                player.play()
                 val snapshot = synchronized(recordedPcmList) { ArrayList(recordedPcmList) }
+                var maxSample = 0
                 for (chunk in snapshot) {
-                    player.write(chunk, 0, chunk.size, AudioTrack.WRITE_BLOCKING)
+                    for (s in chunk) {
+                        val v = kotlin.math.abs(s.toInt())
+                        if (v > maxSample) maxSample = v
+                    }
+                }
+                val gain = if (maxSample > 0) (28000.0f / maxSample).coerceIn(1.0f, 6.0f) else 1.0f
+                appendLog("[PLAY] Playing 5s sample on phone speaker (gain: ${"%.1f".format(gain)}x, peak: $maxSample)...")
+
+                player.play()
+                for (chunk in snapshot) {
+                    if (gain > 1.05f) {
+                        val boosted = ShortArray(chunk.size) { i ->
+                            (chunk[i] * gain).toInt().coerceIn(-32767, 32767).toShort()
+                        }
+                        player.write(boosted, 0, boosted.size, AudioTrack.WRITE_BLOCKING)
+                    } else {
+                        player.write(chunk, 0, chunk.size, AudioTrack.WRITE_BLOCKING)
+                    }
                 }
                 player.stop()
                 player.release()

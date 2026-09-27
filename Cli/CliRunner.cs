@@ -25,6 +25,11 @@ namespace PhoneMicBridge.Cli
                 case CliCommand.ListOutputs:
                     ListOutputs(options.TargetDeviceGuid);
                     break;
+                case CliCommand.ListDevices:
+                    ListOutputs(options.TargetDeviceGuid);
+                    Console.WriteLine();
+                    ListInputs();
+                    break;
                 case CliCommand.TestTone:
                     RunTestTone(options);
                     break;
