@@ -82,6 +82,8 @@ namespace PhoneMicBridge.Cli
                         if (i + 1 < args.Length && float.TryParse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture, out float tgain)) { options.ToneGain = tgain; i++; }
                         break;
                     case "--mic-gain":
+                    case "--speaker-gain":
+                    case "--loopback-gain":
                         if (i + 1 < args.Length && float.TryParse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture, out float mgain)) { options.MicGain = mgain; i++; }
                         break;
                     case "--no-mic":

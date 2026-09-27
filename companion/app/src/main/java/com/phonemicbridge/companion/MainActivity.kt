@@ -574,8 +574,8 @@ class MainActivity : AppCompatActivity() {
                 ).coerceAtLeast(3200)
 
                 val audioAttributes = AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
                     .build()
 
                 val format = AudioFormat.Builder()
@@ -590,6 +590,8 @@ class MainActivity : AppCompatActivity() {
                     .setBufferSizeInBytes(trackBufSize)
                     .setTransferMode(AudioTrack.MODE_STREAM)
                     .build()
+
+                player.setVolume(1.0f)
 
                 val speakerDevice = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
                     .firstOrNull { it.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER }
