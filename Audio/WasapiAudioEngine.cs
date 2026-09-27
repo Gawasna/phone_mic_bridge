@@ -16,6 +16,8 @@ namespace PhoneMicBridge.Audio
         private WasapiOut? _wasapiOut;
         private WasapiCapture? _wasapiCapture;
         private BufferedWaveProvider? _captureBuffer;
+        private MMDevice? _hfpDuplexCaptureDevice;
+        private WasapiCapture? _hfpDuplexCapture;
         private bool _isDisposed;
 
         public BridgeState State => _stateMachine.CurrentState;
@@ -116,6 +118,25 @@ namespace PhoneMicBridge.Audio
                 _wasapiOut = new WasapiOut(_renderDevice, AudioClientShareMode.Shared, false, 50);
                 _wasapiOut.Init(outputProvider);
 
+                // Full-Duplex HFP keep-alive: BthHFAud.sys requires active capture stream to maintain SCO link
+                _hfpDuplexCaptureDevice ??= DeviceDiscovery.FindMatchingHfpCaptureDevice(_renderDevice);
+                if (_hfpDuplexCaptureDevice != null)
+                {
+                    try
+                    {
+                        _hfpDuplexCapture = new WasapiCapture(_hfpDuplexCaptureDevice, true, 50);
+                        _hfpDuplexCapture.DataAvailable += (s, e) =>
+                        {
+                            // Drain buffer to satisfy driver full-duplex requirement
+                        };
+                        _hfpDuplexCapture.StartRecording();
+                    }
+                    catch (Exception ex)
+                    {
+                        DeviceWarningReceived?.Invoke(this, $"Failed to start HFP duplex capture keep-alive: {ex.Message}");
+                    }
+                }
+
                 if (_wasapiCapture != null && Pipeline.IsMicEnabled)
                 {
                     _wasapiCapture.StartRecording();
@@ -139,6 +160,7 @@ namespace PhoneMicBridge.Audio
             try
             {
                 _wasapiCapture?.StopRecording();
+                _hfpDuplexCapture?.StopRecording();
                 _wasapiOut?.Stop();
             }
             catch
@@ -147,6 +169,8 @@ namespace PhoneMicBridge.Audio
             }
             finally
             {
+                _hfpDuplexCapture?.Dispose();
+                _hfpDuplexCapture = null;
                 _stateMachine.TryTransitionTo(BridgeState.Stopped);
             }
         }
@@ -163,6 +187,7 @@ namespace PhoneMicBridge.Audio
             _deviceWatcher.Dispose();
             _wasapiOut?.Dispose();
             _wasapiCapture?.Dispose();
+            _hfpDuplexCapture?.Dispose();
             Pipeline.Dispose();
         }
     }
