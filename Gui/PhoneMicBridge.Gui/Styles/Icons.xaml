@@ -95,5 +95,15 @@
         </Viewbox>
     </ControlTemplate>
 
+    <ControlTemplate x:Key="Icon_Globe" TargetType="Control">
+        <Viewbox Stretch="Uniform">
+            <Canvas Width="24" Height="24">
+                <Path Style="{StaticResource LucideIconStyle}" Data="M 12,2 A 10,10 0 1 0 12,22 A 10,10 0 1 0 12,2" />
+                <Path Style="{StaticResource LucideIconStyle}" Data="M 12,2 A 14.5,14.5 0 0 0 12,22 A 14.5,14.5 0 0 0 12,2" />
+                <Path Style="{StaticResource LucideIconStyle}" Data="M 2,12 L 22,12" />
+            </Canvas>
+        </Viewbox>
+    </ControlTemplate>
 </ResourceDictionary>
+
 

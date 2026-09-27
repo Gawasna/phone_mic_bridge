@@ -214,41 +214,25 @@
 
     <!-- ================================================================= -->
     <!-- SAFE ZONE: 4-Row Grid Layout Matching Wireframe v0.0.2            -->
-    <!-- Row 0: Toolbar (40px)                                             -->
+    <!-- Row 0: Toolbar (Auto)                                             -->
     <!-- Row 1: SubToolbar (48px - Action1 159px + Select Section 504px)   -->
     <!-- Row 2: Body (Flex * - SideSection 268px + MainSection)            -->
     <!-- Row 3: Statusbar (32px - Truthful Status 3-Tier)                  -->
     <!-- ================================================================= -->
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="40" /> <!-- Row 0: Toolbar (40px) -->
+            <RowDefinition Height="Auto" /> <!-- Row 0: Toolbar (40px) -->
             <RowDefinition Height="48" /> <!-- Row 1: SubToolbar (48px) -->
             <RowDefinition Height="*" MinHeight="450" />  <!-- Row 2: Body (528px+ Flex) -->
             <RowDefinition Height="32" /> <!-- Row 3: Statusbar (32px) -->
         </Grid.RowDefinitions>
 
         <!-- ================================================================= -->
-        <!-- ROW 0: TOOLBAR (40px)                                             -->
+        <!-- ROW 0: TOOLBAR (Auto)                                             -->
         <!-- Top Menu Items & Global Action Shortcuts                          -->
         <!-- ================================================================= -->
         <!-- Toolbar: native WPF Menu bar (Figma wireframe: File Edit View Tools About Help) -->
         <DockPanel Grid.Row="0" Background="{StaticResource ToolbarBgBrush}" LastChildFill="False">
-            <!-- Right: state badges (Responsive mode, sample rate, session state) -->
-            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center" Margin="8,0">
-                <Border Background="#F3F4F6" BorderBrush="#D1D5DB" BorderThickness="1" CornerRadius="2" Padding="6,2" Margin="0,0,6,0" ToolTip="Responsive layout mode">
-                    <TextBlock Text="{Binding WindowModeText}" FontSize="8" FontFamily="Consolas, monospace" FontWeight="Bold" Foreground="#4B5563" VerticalAlignment="Center" />
-                </Border>
-                <Border Background="#F1F5F9" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="2" Padding="6,2" Margin="0,0,8,0">
-                    <TextBlock Text="16.0 kHz • 16-bit Mono" FontSize="9" FontFamily="Consolas, monospace" FontWeight="Bold" Foreground="#0369A1" VerticalAlignment="Center" />
-                </Border>
-                <Border Background="{Binding Snapshot.State, Converter={StaticResource StatusBgConv}}"
-                        BorderBrush="{Binding Snapshot.State, Converter={StaticResource StatusBorderConv}}"
-                        BorderThickness="1" CornerRadius="2" Padding="8,3">
-                    <TextBlock Text="{Binding StateText}" FontWeight="Bold" FontSize="10"
-                               Foreground="{Binding Snapshot.State, Converter={StaticResource StatusFgConv}}" />
-                </Border>
-            </StackPanel>
-
             <!-- Native Menu bar (Figma: File Edit View Tools About Help) -->
             <Menu DockPanel.Dock="Left" VerticalAlignment="Center" Background="Transparent" BorderThickness="0">
                 <MenuItem Header="_File">
@@ -265,7 +249,32 @@
                     <Separator />
                     <MenuItem Header="Clear Error" Command="{Binding ClearErrorCommand}" />
                 </MenuItem>
-                <MenuItem Header="_Help" />
+                                <MenuItem Header="_Help">
+                    <MenuItem Header="Documentation">
+                        <MenuItem.Icon>
+                            <Viewbox Width="16" Height="16">
+                                <Canvas Width="24" Height="24">
+                                    <Path Data="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" Fill="Transparent" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" StrokeThickness="1.5" />
+                                    <Path Data="M14 2v6h6" Fill="Transparent" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" StrokeThickness="1.5" />
+                                </Canvas>
+                            </Viewbox>
+                        </MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="Support">
+                        <MenuItem Header="Online Help" InputGestureText="F1" />
+                        <MenuItem Header="Community Forum" />
+                        <MenuItem Header="Report a Bug">
+                            <MenuItem.Icon>
+                                <Viewbox Width="16" Height="16">
+                                    <Canvas Width="24" Height="24">
+                                        <Path Data="M12 16v-4m0-4h.01M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12 6.477 2 12 2s10 4.477 10 10z" Fill="Transparent" Stroke="{DynamicResource {x:Static SystemColors.ControlTextBrushKey}}" StrokeThickness="1.5" />
+                                    </Canvas>
+                                </Viewbox>
+                            </MenuItem.Icon>
+                        </MenuItem>
+                    </MenuItem>
+                    <MenuItem Header="About Phone Mic Bridge" />
+                </MenuItem>
             </Menu>
         </DockPanel>
 
@@ -277,81 +286,24 @@
         <!-- Right: Select Section (504px: Client Section + Devices Section)   -->
         <!-- ================================================================= -->
         <!-- SubToolbar: no top/bottom padding, no telemetry strip (Figma wireframe) -->
-        <Border Grid.Row="1" Background="{StaticResource SubToolbarBgBrush}" BorderBrush="{StaticResource DarkBorderBrush}" BorderThickness="0,1,0,1" Padding="12,0">
+                <Border Grid.Row="1" Background="{StaticResource SubToolbarBgBrush}" BorderBrush="{StaticResource DarkBorderBrush}" BorderThickness="0,1,0,1" Padding="12,0">
             <DockPanel LastChildFill="False">
-                <!-- Group 1: Action1 (Left Group, 159px width alignment from Figma v0.0.3) -->
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center" Width="159">
+                <!-- Group 1: Action1 (Left Group, dynamic width based on 2 buttons) -->
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
                     <!-- ActBtn 1: Start / Stop Button (36x36) -->
                     <Grid Width="36" Height="36" Margin="0,0,6,0">
                         <!-- START Button (Visible when CanStart) -->
-                        <Button Style="{StaticResource SquareActionButton}" 
-                                Command="{Binding StartCommand}" 
-                                ToolTip="{Binding StartButtonTooltip}"
-                                Background="{StaticResource TechGreenBgBrush}"
-                                BorderBrush="{StaticResource TechGreenBorderBrush}"
-                                Visibility="{Binding CanStart, Converter={StaticResource BoolToVisConv}}">
-                            <Path Data="M 5 3 L 15 9 L 5 15 Z" Fill="{StaticResource TechGreenBrush}" Width="14" Height="14" />
+                        <Button Style="{StaticResource SquareActionButton}" Command="{Binding StartCommand}" ToolTip="{Binding StartButtonTooltip}" Visibility="{Binding CanStart, Converter={StaticResource BoolToVisConv}}">
+                            <Control Template="{StaticResource Icon_Globe}" Foreground="{StaticResource TechGreenBrush}" Width="16" Height="16" />
                         </Button>
-
                         <!-- STOP Button (Visible when CanStop) -->
-                        <Button Style="{StaticResource SquareActionButton}" 
-                                Command="{Binding StopCommand}" 
-                                ToolTip="Stop active streaming session"
-                                Background="{StaticResource TechRedBgBrush}"
-                                BorderBrush="{StaticResource TechRedBorderBrush}"
-                                Visibility="{Binding CanStop, Converter={StaticResource BoolToVisConv}}">
+                        <Button Style="{StaticResource SquareActionButton}" Command="{Binding StopCommand}" ToolTip="Stop active streaming session" Visibility="{Binding CanStop, Converter={StaticResource BoolToVisConv}}">
                             <Rectangle Fill="{StaticResource TechRedBrush}" Width="12" Height="12" />
                         </Button>
                     </Grid>
 
-                    <!-- ActBtn 2: Mic Mute / Unmute Button (36x36) -->
-                    <Button Style="{StaticResource SquareActionButton}" 
-                            Command="{Binding ToggleMicCommand}" 
-                            Margin="0,0,6,0"
-                            ToolTip="{Binding MicMuteButtonText}">
-                        <Grid>
-                            <!-- UNMUTED Icon (Mic active) -->
-                            <Path Data="M 6 1 A 2 2 0 0 0 4 3 V 7 A 2 2 0 0 0 8 7 V 3 A 2 2 0 0 0 6 1 Z M 10 6 V 7 A 4 4 0 0 1 2 7 V 6 H 1 V 7 A 5 5 0 0 0 5.5 11.9 V 14 H 6.5 V 11.9 A 5 5 0 0 0 11 7 V 6 Z" 
-                                  Fill="{StaticResource TextPrimaryBrush}" Width="12" Height="14"
-                                  Visibility="{Binding IsMicMuted, Converter={StaticResource BoolToVisConv}, ConverterParameter=Inverse}" />
-
-                            <!-- MUTED Icon (Mic muted) -->
-                            <StackPanel Orientation="Horizontal" Visibility="{Binding IsMicMuted, Converter={StaticResource BoolToVisConv}}">
-                                <Path Data="M 1 1 L 11 11 M 6 1 A 2 2 0 0 0 4 3 V 7 M 10 6 V 7 A 4 4 0 0 1 2 7" 
-                                      Stroke="{StaticResource TechRedBrush}" StrokeThickness="1.5" Width="12" Height="12" />
-                            </StackPanel>
-                        </Grid>
-                    </Button>
-
-                    <!-- ActBtn 3: Route Mode Segmented Switch (IN / OUT - 39x36) -->
-                    <Border Background="#FFFFFF" BorderBrush="{StaticResource DarkBorderBrush}" BorderThickness="1" CornerRadius="1" Height="36" Width="39" Margin="0,0,6,0" Padding="1" VerticalAlignment="Center">
-                        <Button Command="{Binding ToggleRouteModeCommand}" ToolTip="Toggle Route Direction (IN: Capture PC Mic -> Phone | OUT: PC Speaker -> Phone)">
-                            <Button.Style>
-                                <Style TargetType="Button">
-                                    <Setter Property="Background" Value="Transparent" />
-                                    <Setter Property="BorderThickness" Value="0" />
-                                    <Setter Property="Template">
-                                        <Setter.Value>
-                                            <ControlTemplate TargetType="Button">
-                                                <Border Background="{TemplateBinding Background}">
-                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                </Border>
-                                            </ControlTemplate>
-                                        </Setter.Value>
-                                    </Setter>
-                                </Style>
-                            </Button.Style>
-                            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <TextBlock Text="{Binding RouteModeText}" FontSize="8" FontWeight="Bold" Foreground="#0284C7" HorizontalAlignment="Center" />
-                                <Path Data="M 1 4 L 5 1 L 5 7 Z M 9 4 L 5 7" Stroke="#0284C7" StrokeThickness="1" Width="10" Height="8" HorizontalAlignment="Center" Margin="0,1,0,0" />
-                            </StackPanel>
-                        </Button>
-                    </Border>
-
                     <!-- ActBtn 4: Test Tone Generator Button (36x36) -->
-                    <Button Style="{StaticResource SquareActionButton}" 
-                            Command="{Binding ToggleTestToneCommand}" 
-                            ToolTip="{Binding ToneStatusText}">
+                    <Button Style="{StaticResource SquareActionButton}" Command="{Binding ToggleTestToneCommand}" ToolTip="{Binding ToneStatusText}">
                         <StackPanel Orientation="Vertical" HorizontalAlignment="Center" VerticalAlignment="Center">
                             <Ellipse Width="6" Height="6" Margin="0,0,0,1">
                                 <Ellipse.Style>
@@ -370,28 +322,22 @@
                     </Button>
                 </StackPanel>
 
-                <!-- Group 2: Select Section (Right Group, 504px width alignment from Wireframe v0.0.2) -->
-                <!-- Contains Client Section (Cyan subtle border) and Devices Section (Pink subtle border) -->
-                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" VerticalAlignment="Center">
-                                    <!-- ========================================================= -->
-                <!-- CLIENT SECTION (Source: Bluetooth Client Phone/Headset)   -->
-                <!-- Cyan Accent from Wireframe v0.0.2 (#B9FFFD)               -->
-                <!-- ========================================================= -->
-                <Border Grid.Column="2" Background="{StaticResource TechCyanBgBrush}" BorderBrush="{StaticResource TechCyanBorderBrush}" BorderThickness="1" CornerRadius="2" Height="38" Padding="4,1" Margin="0,0,8,0">
-                    <DockPanel LastChildFill="True">
-                        <!-- Bluetooth Defensive UX Container -->
-                        <Grid>
-                            <!-- Real ComboBox (Active when BT is Enabled) -->
-                            <ComboBox ItemsSource="{Binding BluetoothDevices}" 
-                                      SelectedItem="{Binding SelectedBluetoothDevice, Mode=TwoWay}"
-                                      Height="26" VerticalContentAlignment="Center" HorizontalContentAlignment="Stretch" Background="#FFFFFF" BorderBrush="{StaticResource DarkBorderBrush}" ToolTip="Select paired Bluetooth client (Phone/Headset)">
+                <!-- Group 2: Select Section (Right Group, dynamically squeezable) -->
+                <Grid DockPanel.Dock="Right" VerticalAlignment="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="1*" />
+                    </Grid.ColumnDefinitions>
+                                    
+                <!-- CLIENT SECTION -->
+                <Grid Grid.Column="0" Margin="0,0,8,0">
+                    <!-- Real ComboBox -->
+                    <ComboBox ItemsSource="{Binding BluetoothDevices}" SelectedItem="{Binding SelectedBluetoothDevice, Mode=TwoWay}" Height="38" VerticalContentAlignment="Center" HorizontalContentAlignment="Stretch" Background="#FFFFFF" BorderBrush="{StaticResource DarkBorderBrush}" ToolTip="Select paired Bluetooth client (Phone/Headset)" MaxWidth="555" MinWidth="255">
                                 <ComboBox.Style>
                                     <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
                                         <Setter Property="Visibility" Value="Visible" />
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsBluetoothEnabled}" Value="False">
-                                                <Setter Property="Visibility" Value="Collapsed" />
-                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsBluetoothEnabled}" Value="False"><Setter Property="Visibility" Value="Collapsed" /></DataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </ComboBox.Style>
@@ -399,17 +345,15 @@
                                     <DataTemplate>
                                         <Grid>
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto" /> <!-- Placeholder Icon -->
-                                                <ColumnDefinition Width="240*" MinWidth="190" MaxWidth="240" />    <!-- Name -->
-                                                <ColumnDefinition Width="130*" MinWidth="30" MaxWidth="130" />     <!-- Responsive Gap -->
-                                                <ColumnDefinition Width="Auto" MaxWidth="165" />                   <!-- Support Status -->
-                                                <ColumnDefinition Width="Auto" />                                  <!-- Dot -->
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" MinWidth="130" MaxWidth="240" />
+                                                <ColumnDefinition Width="*" MinWidth="15" MaxWidth="130" />
+                                                <ColumnDefinition Width="Auto" MaxWidth="165" />
+                                                <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
 
                                             <!-- Dynamic SVG Icon (Shows at w >= 1400) -->
-                                            <Border Grid.Column="0" CornerRadius="1" Padding="1" Margin="0,0,4,0" Background="#F1F5F9"
-                                                    Width="16" Height="16" VerticalAlignment="Center"
-                                                    Visibility="{Binding DataContext.ShowDeviceIcon, RelativeSource={RelativeSource AncestorType=ComboBox}, Converter={StaticResource BoolToVisConv}}">
+                                            <Border Grid.Column="0" Width="16" Height="16" Padding="1" Margin="0,0,6,0" VerticalAlignment="Center" Visibility="{Binding DataContext.ShowDeviceIcon, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVisConv}}">
                                                 <ContentControl Foreground="#64748B" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
                                                     <ContentControl.Style>
                                                         <Style TargetType="ContentControl">
@@ -429,25 +373,21 @@
                                                     </ContentControl.Style>
                                                 </ContentControl>
                                             </Border>
-
-                                            <!-- Device Name in Bold (Always visible) -->
-                                            <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12" FontWeight="Normal" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-
-                                            <!-- Support Status Badge (Shows at w >= 900) -->
-                                            <Border Grid.Column="3" CornerRadius="1" Padding="3,1" Margin="4,0,0,0" Background="#E0F2FE" BorderBrush="#BAE6FD" BorderThickness="1"
-                                                    Visibility="{Binding DataContext.ShowSupportStatus, RelativeSource={RelativeSource AncestorType=ComboBox}, Converter={StaticResource BoolToVisConv}}">
-                                                <TextBlock Text="{Binding BridgeSupportStatus}" FontSize="8" FontWeight="Bold" Foreground="#0369A1" />
+                                            
+                                            <!-- Support Status (Shows at w >= 900) -->
+                                            <Border Grid.Column="3" Background="#F1F5F9" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="1" Padding="4,1" Margin="4,0,4,0" Visibility="{Binding DataContext.ShowSupportStatus, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolToVisConv}}">
+                                                <TextBlock Text="{Binding BridgeSupportStatus}" FontSize="8" FontWeight="SemiBold" Foreground="#64748B" VerticalAlignment="Center" />
                                             </Border>
-
-                                            <!-- Online/Offline Status Dot (Absolute Right Edge) -->
+                                            
+                                            <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="10" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                            
+                                            <!-- Online/Offline Status Dot -->
                                             <Ellipse Grid.Column="4" Width="6" Height="6" Margin="6,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Right">
                                                 <Ellipse.Style>
                                                     <Style TargetType="Ellipse">
-                                                        <Setter Property="Fill" Value="#D1D5DB" /> <!-- Offline: Gray -->
+                                                        <Setter Property="Fill" Value="#D1D5DB" />
                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsConnected}" Value="True">
-                                                                <Setter Property="Fill" Value="#10B981" /> <!-- Online: Green -->
-                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding IsConnected}" Value="True"><Setter Property="Fill" Value="#10B981" /></DataTrigger>
                                                         </Style.Triggers>
                                                     </Style>
                                                 </Ellipse.Style>
@@ -457,22 +397,19 @@
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
 
-                            <!-- Fake ComboBox / Defensive UX (Active when BT is Disabled) -->
-                            <ToggleButton x:Name="BtDisabledToggle" Height="26" ToolTip="Bluetooth is disabled. Click to resolve." IsVisibleChanged="BtDisabledToggle_IsVisibleChanged">
+                            <!-- Fake ComboBox / Defensive UX -->
+                            <ToggleButton x:Name="BtDisabledToggle" Height="38" ToolTip="Bluetooth is disabled. Click to resolve." IsVisibleChanged="BtDisabledToggle_IsVisibleChanged" MaxWidth="555" MinWidth="255">
                                 <ToggleButton.Style>
                                     <Style TargetType="ToggleButton">
                                         <Setter Property="Visibility" Value="Collapsed" />
                                         <Style.Triggers>
-                                            <DataTrigger Binding="{Binding IsBluetoothEnabled}" Value="False">
-                                                <Setter Property="Visibility" Value="Visible" />
-                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding IsBluetoothEnabled}" Value="False"><Setter Property="Visibility" Value="Visible" /></DataTrigger>
                                         </Style.Triggers>
                                     </Style>
                                 </ToggleButton.Style>
                                 <ToggleButton.Template>
                                     <ControlTemplate TargetType="ToggleButton">
-                                        <Border Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" 
-                                                BorderBrush="{StaticResource DarkBorderBrush}" BorderThickness="1">
+                                        <Border Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" BorderBrush="{StaticResource DarkBorderBrush}" BorderThickness="1">
                                             <Grid>
                                                 <Grid.ColumnDefinitions>
                                                     <ColumnDefinition Width="*" />
@@ -490,11 +427,7 @@
                             
                             <!-- Native Desktop-style Dropdown -->
                             <Popup IsOpen="{Binding IsChecked, ElementName=BtDisabledToggle}" StaysOpen="False" PlacementTarget="{Binding ElementName=BtDisabledToggle}" Placement="Bottom" AllowsTransparency="True" PopupAnimation="Fade">
-                                <Border Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" 
-                                        BorderBrush="{StaticResource DarkBorderBrush}" 
-                                        BorderThickness="1" 
-                                        MinWidth="{Binding ActualWidth, ElementName=BtDisabledToggle}" 
-                                        Margin="0,1,0,0">
+                                <Border Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}" BorderBrush="{StaticResource DarkBorderBrush}" BorderThickness="1" MinWidth="{Binding ActualWidth, ElementName=BtDisabledToggle}" Margin="0,1,0,0">
                                     <StackPanel Margin="1">
                                         <TextBlock Text="Bluetooth is turned off" Margin="24,6,8,4" Foreground="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" FontSize="11" />
                                         <Separator Margin="0,2" Background="{StaticResource BorderBrush}"/>
@@ -519,43 +452,24 @@
                                     </StackPanel>
                                 </Border>
                             </Popup>
-                        </Grid>
-                    </DockPanel>
-                </Border>
+                </Grid>
 
-                    <!-- ========================================================= -->
-                    <!-- DEVICES SECTION (Target: Host PC Endpoint)                -->
-                    <!-- Pink Accent from Wireframe v0.0.2 (#FFC8C8)               -->
-                    <!-- ========================================================= -->
-                    <Border Background="{StaticResource TechPinkBgBrush}" BorderBrush="{StaticResource TechPinkBorderBrush}" BorderThickness="1" CornerRadius="2" Width="244" Height="38" Padding="4,1">
-                        <DockPanel LastChildFill="True">
-                            <!-- Directional Label Badge -->
-                            <Border CornerRadius="1" Padding="4,2" Margin="0,0,4,0" DockPanel.Dock="Left" Background="#FFE4E6" VerticalAlignment="Center">
-                                <TextBlock Text="{Binding Dropdown2Label}" FontSize="8" FontWeight="Bold" Foreground="{StaticResource TechPinkBrush}" />
-                            </Border>
-
-                            <!-- Host Endpoint ComboBox -->
-                            <ComboBox ItemsSource="{Binding AvailableEndpointDevices}" 
-                                      SelectedItem="{Binding SelectedEndpointDevice, Mode=TwoWay}"
-                                      Height="26" VerticalContentAlignment="Center" Background="#FFFFFF" BorderBrush="{StaticResource DarkBorderBrush}" ToolTip="Select host audio endpoint for bridge route">
-                                <ComboBox.ItemTemplate>
-                                    <DataTemplate>
-                                        <DockPanel LastChildFill="True">
-                                            <Border Background="#FFE4E6" BorderBrush="#FECDD3" BorderThickness="1" CornerRadius="1" Padding="3,1" Margin="4,0,0,0" DockPanel.Dock="Right" Visibility="{Binding IsDefault, Converter={StaticResource BoolToVisConv}}">
-                                                <TextBlock Text="DEF" FontSize="8" FontWeight="Bold" Foreground="{StaticResource TechPinkBrush}" />
-                                            </Border>
-                                            <TextBlock Text="{Binding Name}" FontSize="10" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                                        </DockPanel>
-                                    </DataTemplate>
-                                </ComboBox.ItemTemplate>
-                            </ComboBox>
-                        </DockPanel>
-                    </Border>
-                </StackPanel>
+                <!-- HOST SECTION -->
+                <ComboBox Grid.Column="1" ItemsSource="{Binding AvailableEndpointDevices}" SelectedItem="{Binding SelectedEndpointDevice, Mode=TwoWay}" Height="38" VerticalContentAlignment="Center" Background="#FFFFFF" BorderBrush="{StaticResource DarkBorderBrush}" ToolTip="Select host audio endpoint for bridge route">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <DockPanel LastChildFill="True">
+                                        <Border Background="#FFE4E6" BorderBrush="#FECDD3" BorderThickness="1" CornerRadius="1" Padding="3,1" Margin="4,0,0,0" DockPanel.Dock="Right" Visibility="{Binding IsDefault, Converter={StaticResource BoolToVisConv}}">
+                                            <TextBlock Text="DEF" FontSize="8" FontWeight="Bold" Foreground="{StaticResource TechPinkBrush}" />
+                                        </Border>
+                                        <TextBlock Text="{Binding Name}" FontSize="10" FontWeight="Normal" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                    </DockPanel>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                </ComboBox>
+                </Grid>
             </DockPanel>
         </Border>
-
-        <!-- ================================================================= -->
         <!-- ROW 2: BODY (Flex *, MinHeight 450px)                             -->
         <!-- Left: SideSection (268px: Presets Section + System Resources)     -->
         <!-- Right: MainSection (Flex *: VU Meter + Playground + Console)      -->
@@ -1046,4 +960,13 @@
         </Border>
     </Grid>
 </Window>
+
+
+
+
+
+
+
+
+
 

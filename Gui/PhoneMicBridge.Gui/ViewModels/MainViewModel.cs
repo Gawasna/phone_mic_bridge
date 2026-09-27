@@ -474,9 +474,10 @@ namespace PhoneMicBridge.Gui.ViewModels
 
         private void AppendLogEntry(string entry)
         {
-            if (ConsoleLogs.Count > 100)
+            if (ConsoleLogs.Count >= 100)
             {
-                ConsoleLogs.RemoveAt(0);
+                ConsoleLogs.Clear();
+                ConsoleLogs.Add("--- Diagnostic console buffer wrapped ---");
             }
             ConsoleLogs.Add(entry);
         }

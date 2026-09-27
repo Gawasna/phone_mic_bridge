@@ -56,3 +56,5 @@ android/.cxx/
 *.aab
 android/.idea/
 android/*.iml
+companion/.gradle/*
+companion/app/build/*

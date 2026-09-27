@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="#111827">
+
+    <!-- Header -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="PMB COMPANION"
+        android:textColor="#6EE7B7"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:fontFamily="monospace"
+        android:layout_marginBottom="4dp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="HFP Trigger PoC + Loopback VU Meter"
+        android:textColor="#6B7280"
+        android:textSize="12sp"
+        android:fontFamily="monospace"
+        android:layout_marginBottom="24dp"/>
+
+    <!-- SCO State -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="SCO STATE"
+        android:textColor="#9CA3AF"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:fontFamily="monospace"
+        android:layout_marginBottom="4dp"/>
+
+    <TextView
+        android:id="@+id/tvScoState"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="DISCONNECTED"
+        android:textColor="#EF4444"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:fontFamily="monospace"
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:id="@+id/tvScoDetail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No active HFP session"
+        android:textColor="#6B7280"
+        android:textSize="11sp"
+        android:fontFamily="monospace"
+        android:layout_marginBottom="24dp"/>
+
+    <!-- Trigger buttons -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="TRIGGER"
+        android:textColor="#9CA3AF"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:fontFamily="monospace"
+        android:layout_marginBottom="8dp"/>
+
+    <Button
+        android:id="@+id/btnAttempt1"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Attempt 1: startBluetoothSco() [Legacy]"
+        android:textSize="11sp"
+        android:fontFamily="monospace"
+        android:backgroundTint="#1D4ED8"
+        android:layout_marginBottom="8dp"/>
+
+    <Button
+        android:id="@+id/btnAttempt2"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Attempt 2: setCommunicationDevice() [API 31+]"
+        android:textSize="11sp"
+        android:fontFamily="monospace"
+        android:backgroundTint="#7C3AED"
+        android:layout_marginBottom="8dp"/>
+
+    <Button
+        android:id="@+id/btnStop"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:text="Stop / Release SCO"
+        android:textSize="11sp"
+        android:fontFamily="monospace"
+        android:backgroundTint="#374151"
+        android:layout_marginBottom="24dp"/>
+
+    <!-- VU Meter -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="LOOPBACK VU METER  (SCO mic input)"
+        android:textColor="#9CA3AF"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:fontFamily="monospace"
+        android:layout_marginBottom="8dp"/>
+
+    <ProgressBar
+        android:id="@+id/vuMeter"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="24dp"
+        android:max="100"
+        android:progress="0"
+        android:progressTint="#10B981"
+        android:progressBackgroundTint="#1F2937"
+        android:layout_marginBottom="4dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:id="@+id/tvDbLevel"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="--- dBFS"
+            android:textColor="#10B981"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:fontFamily="monospace"/>
+
+        <TextView
+            android:id="@+id/tvRecordState"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="IDLE"
+            android:textColor="#6B7280"
+            android:textSize="11sp"
+            android:fontFamily="monospace"/>
+    </LinearLayout>
+
+    <!-- Log -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="LOG"
+        android:textColor="#9CA3AF"
+        android:textSize="10sp"
+        android:textStyle="bold"
+        android:fontFamily="monospace"
+        android:layout_marginBottom="4dp"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <TextView
+            android:id="@+id/tvLog"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textColor="#9CA3AF"
+            android:textSize="10sp"
+            android:fontFamily="monospace"
+            android:lineSpacingExtra="2dp"/>
+    </ScrollView>
+
+</LinearLayout>

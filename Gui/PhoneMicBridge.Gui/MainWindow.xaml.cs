@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 using PhoneMicBridge.Gui.ViewModels;
+using WinForms = System.Windows.Forms;
 
 namespace PhoneMicBridge.Gui
 {
@@ -33,9 +34,54 @@ namespace PhoneMicBridge.Gui
     /// </summary>
     public partial class MainWindow : Window
     {
+        private WinForms.NotifyIcon? _notifyIcon;
+        private bool _isExplicitExit;
+
         public MainWindow()
         {
             InitializeComponent();
+            InitializeTrayIcon();
+        }
+
+        private void InitializeTrayIcon()
+        {
+            var components = new System.ComponentModel.Container();
+            _notifyIcon = new WinForms.NotifyIcon(components)
+            {
+                Icon = System.Drawing.SystemIcons.Application,
+                Text = "Phone Mic Bridge",
+                Visible = true
+            };
+
+            _notifyIcon.DoubleClick += (s, e) => RestoreWindow();
+
+            var contextMenu = new WinForms.ContextMenuStrip();
+            contextMenu.Items.Add("Show Bridge", null, (s, e) => RestoreWindow());
+            contextMenu.Items.Add("Exit", null, (s, e) => ExplicitExit());
+            
+            _notifyIcon.ContextMenuStrip = contextMenu;
+        }
+
+        private void RestoreWindow()
+        {
+            Show();
+            WindowState = WindowState.Normal;
+            Activate();
+        }
+
+        private void ExplicitExit()
+        {
+            _isExplicitExit = true;
+            Close();
+        }
+
+        protected override void OnStateChanged(EventArgs e)
+        {
+            if (WindowState == WindowState.Minimized)
+            {
+                Hide();
+            }
+            base.OnStateChanged(e);
         }
 
                 private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -74,11 +120,24 @@ namespace PhoneMicBridge.Gui
 
         private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            Close();
+            ExplicitExit();
         }
 
         protected override void OnClosing(CancelEventArgs e)
         {
+            if (!_isExplicitExit)
+            {
+                e.Cancel = true;
+                Hide();
+                return;
+            }
+
+            if (_notifyIcon != null)
+            {
+                _notifyIcon.Visible = false;
+                _notifyIcon.Dispose();
+            }
+
             base.OnClosing(e);
             if (DataContext is IDisposable disposable)
             {

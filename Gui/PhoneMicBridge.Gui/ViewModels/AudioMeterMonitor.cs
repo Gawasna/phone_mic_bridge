@@ -73,24 +73,69 @@ namespace PhoneMicBridge.Gui.ViewModels
         public float InputPeakDb => _meterValues.InputPeakDb;
         public float InputPeak => _meterValues.InputPeak;
         public float InputRms => _meterValues.InputRms;
-        public string InputPeakDbText => _meterValues.InputPeakDb <= -59.0f ? "-inf dBFS" : $"{_meterValues.InputPeakDb.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)} dBFS";
+        private string _inputPeakDbText = "-inf dBFS";
+        private float _lastInputPeakDb = -100f;
+        public string InputPeakDbText
+        {
+            get
+            {
+                if (Math.Abs(_meterValues.InputPeakDb - _lastInputPeakDb) >= 0.05f)
+                {
+                    _lastInputPeakDb = _meterValues.InputPeakDb;
+                    _inputPeakDbText = _meterValues.InputPeakDb <= -59.0f ? "-inf dBFS" : $"{_meterValues.InputPeakDb.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)} dBFS";
+                }
+                return _inputPeakDbText;
+            }
+        }
+
         public bool IsInputClipping => _meterValues.IsInputClipping || _meterValues.InputPeakDb >= -0.1f || _meterValues.InputPeak >= 0.98855f;
-        public Brush InputMeterBrush => IsInputClipping ? MeterRedBrush : (_meterValues.InputPeakDb >= -6.0f ? MeterAmberBrush : MeterGreenBrush);
+        public SolidColorBrush InputMeterBrush => IsInputClipping ? MeterRedBrush : (_meterValues.InputPeakDb >= -6.0f ? MeterAmberBrush : MeterGreenBrush);
 
         // DSP Post-Processing Metering (Slot 2 in Fullscreen v0.0.3)
         public double DspPeakPercent => Math.Clamp(_meterValues.InputPeak * 92.0, 0.0, 100.0);
         public float DspPeakDb => _meterValues.InputPeakDb <= -59.0f ? -60.0f : (float)Math.Clamp(_meterValues.InputPeakDb - 0.7f, -60.0f, 0.0f);
-        public string DspPeakDbText => DspPeakDb <= -59.0f ? "-inf dBFS" : $"{DspPeakDb.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)} dBFS";
+
+        private string _dspPeakDbText = "-inf dBFS";
+        private float _lastDspPeakDb = -100f;
+        public string DspPeakDbText
+        {
+            get
+            {
+                float currentDspDb = DspPeakDb;
+                if (Math.Abs(currentDspDb - _lastDspPeakDb) >= 0.05f)
+                {
+                    _lastDspPeakDb = currentDspDb;
+                    _dspPeakDbText = currentDspDb <= -59.0f ? "-inf dBFS" : $"{currentDspDb.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)} dBFS";
+                }
+                return _dspPeakDbText;
+            }
+        }
+
         public bool IsDspClipping => IsInputClipping;
-        public Brush DspMeterBrush => IsDspClipping ? MeterRedBrush : (DspPeakDb >= -6.0f ? MeterAmberBrush : MeterGreenBrush);
+        public SolidColorBrush DspMeterBrush => IsDspClipping ? MeterRedBrush : (DspPeakDb >= -6.0f ? MeterAmberBrush : MeterGreenBrush);
 
         public double OutputPeakPercent => Math.Clamp(_meterValues.OutputPeak * 100.0, 0.0, 100.0);
         public float OutputPeakDb => _meterValues.OutputPeakDb;
         public float OutputPeak => _meterValues.OutputPeak;
         public float OutputRms => _meterValues.OutputRms;
-        public string OutputPeakDbText => _meterValues.OutputPeakDb <= -59.0f ? "-inf dBFS" : $"{_meterValues.OutputPeakDb.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)} dBFS";
+
+        private string _outputPeakDbText = "-inf dBFS";
+        private float _lastOutputPeakDb = -100f;
+        public string OutputPeakDbText
+        {
+            get
+            {
+                if (Math.Abs(_meterValues.OutputPeakDb - _lastOutputPeakDb) >= 0.05f)
+                {
+                    _lastOutputPeakDb = _meterValues.OutputPeakDb;
+                    _outputPeakDbText = _meterValues.OutputPeakDb <= -59.0f ? "-inf dBFS" : $"{_meterValues.OutputPeakDb.ToString("F1", System.Globalization.CultureInfo.InvariantCulture)} dBFS";
+                }
+                return _outputPeakDbText;
+            }
+        }
+
         public bool IsOutputClipping => _meterValues.IsOutputClipping || _meterValues.OutputPeakDb >= -0.1f || _meterValues.OutputPeak >= 0.98855f;
-        public Brush OutputMeterBrush => IsOutputClipping ? MeterRedBrush : (_meterValues.OutputPeakDb >= -6.0f ? MeterAmberBrush : MeterGreenBrush);
+        public SolidColorBrush OutputMeterBrush => IsOutputClipping ? MeterRedBrush : (_meterValues.OutputPeakDb >= -6.0f ? MeterAmberBrush : MeterGreenBrush);
 
         // 8-Band Frequency Spectrum Visualizer (FFT Acoustic Bands for Playground Section)
         public double Band60Hz => Math.Clamp(_meterValues.InputPeak * 42.0, 2.0, 100.0);
@@ -107,7 +152,7 @@ namespace PhoneMicBridge.Gui.ViewModels
             _service = service ?? throw new ArgumentNullException(nameof(service));
 
             // 30Hz Meter Polling Timer (33ms) - Zero Heap Allocation in Audio Hot Path
-            _meterTimer = new DispatcherTimer(DispatcherPriority.Render)
+            _meterTimer = new DispatcherTimer(DispatcherPriority.Background)
             {
                 Interval = TimeSpan.FromMilliseconds(33)
             };
