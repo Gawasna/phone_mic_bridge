@@ -21,6 +21,7 @@ namespace PhoneMicBridge.Cli
         public bool EnableTone { get; set; }
         public bool EnableMic { get; set; } = true;
         public string TargetDeviceGuid { get; set; } = Devices.DeviceDiscovery.DEFAULT_TARGET_HFP_GUID;
+        public string InputDeviceQuery { get; set; } = string.Empty;
 
         public static CliOptions Parse(string[] args)
         {
@@ -88,6 +89,12 @@ namespace PhoneMicBridge.Cli
                         break;
                     case "--target-guid":
                         if (i + 1 < args.Length) options.TargetDeviceGuid = args[++i];
+                        break;
+                    case "--input":
+                    case "-i":
+                    case "--speaker":
+                    case "--loopback":
+                        if (i + 1 < args.Length) options.InputDeviceQuery = args[++i];
                         break;
                 }
             }

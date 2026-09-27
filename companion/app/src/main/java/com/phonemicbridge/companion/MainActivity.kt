@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
     private var playbackJob: Job? = null
     private val ioScope = CoroutineScope(Dispatchers.IO)
 
-    // SCO state receiver
+    // SCO state receiver (logging / diagnostics only)
     private val scoReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val state = intent.getIntExtra(AudioManager.EXTRA_SCO_AUDIO_STATE, -1)
@@ -58,12 +58,6 @@ class MainActivity : AppCompatActivity() {
                 else -> "UNKNOWN($state)"
             }
             appendLog("[SCO_BROADCAST] $stateName")
-            updateScoUi(state)
-            if (state == AudioManager.SCO_AUDIO_STATE_CONNECTED) {
-                startVuMeter()
-            } else {
-                stopVuMeter()
-            }
         }
     }
 
@@ -80,13 +74,16 @@ class MainActivity : AppCompatActivity() {
             RECEIVER_EXPORTED
         )
 
-        // Register modern communication device listener once
+        // Register modern communication device listener as single source of truth
         audioManager.addOnCommunicationDeviceChangedListener(mainExecutor) { device ->
-            appendLog("[COMM_CB] Device changed: ${device?.let { "'${it.productName}' type=${deviceTypeName(it.type)}" } ?: "null"}")
+            val devName = device?.let { "'${it.productName}' type=${deviceTypeName(it.type)}" } ?: "null"
+            appendLog("[COMM_CB] Device changed: $devName")
             if (device?.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO) {
-                appendLog("[COMM_CB] SCO active -> ensure VU meter running")
+                appendLog("[COMM_CB] SCO device ACTIVE -> starting VU meter")
                 updateScoUi(AudioManager.SCO_AUDIO_STATE_CONNECTED)
                 startVuMeter()
+            } else {
+                appendLog("[COMM_CB] Non-SCO device active ($devName)")
             }
         }
 
@@ -141,6 +138,10 @@ class MainActivity : AppCompatActivity() {
         appendLog("[A2] Found BT SCO device: '${btScoDevice.productName}' id=${btScoDevice.id}")
         val success = audioManager.setCommunicationDevice(btScoDevice)
         appendLog("[A2] setCommunicationDevice() returned: $success")
+        if (success) {
+            updateScoUi(AudioManager.SCO_AUDIO_STATE_CONNECTED)
+            startVuMeter()
+        }
     }
 
     private fun connectPairedPc() {

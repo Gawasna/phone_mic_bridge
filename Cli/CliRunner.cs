@@ -60,6 +60,8 @@ namespace PhoneMicBridge.Cli
             Console.WriteLine("      --tone-gain [g]     : Âm lượng tone (mặc định 0.35)");
             Console.WriteLine("      --mic-gain [g]      : Độ nhạy micro (mặc định 1.0)");
             Console.WriteLine("      --no-mic            : Tắt micro ban đầu, chỉ phát file/tone");
+            Console.WriteLine("      --input <name/guid> : Nguồn thu âm hoặc ngõ ra để loopback (vd: 'FxSound', 'Realtek')");
+            Console.WriteLine("      --speaker <name>    : Chỉ định ngõ ra loa PC để capture loopback (alias của --input)");
             Console.WriteLine("      --target-guid <id>  : Tùy chỉnh GUID của thiết bị đích HFP");
         }
 
@@ -165,11 +167,12 @@ namespace PhoneMicBridge.Cli
                 return;
             }
 
-            var micDev = DeviceDiscovery.GetDefaultCaptureDevice();
+            var inputDev = DeviceDiscovery.FindCaptureOrLoopbackDevice(options.InputDeviceQuery);
+            string inputType = inputDev.DataFlow == DataFlow.Render ? "SPEAKER LOOPBACK" : "MIC";
             Console.WriteLine($"\n[HFP DESTINATION]: {targetDev.FriendlyName} ({targetDev.AudioClient.MixFormat.SampleRate} Hz)");
-            Console.WriteLine($"[MIC SOURCE]: {micDev.FriendlyName}");
+            Console.WriteLine($"[{inputType} SOURCE]: {inputDev.FriendlyName} (Flow: {inputDev.DataFlow})");
 
-            using var engine = new WasapiAudioEngine(targetDev, micDev);
+            using var engine = new WasapiAudioEngine(targetDev, inputDev);
             engine.Pipeline.MicGain = options.MicGain;
             engine.Pipeline.FileGain = options.FileGain;
             engine.Pipeline.ToneGain = options.ToneGain;

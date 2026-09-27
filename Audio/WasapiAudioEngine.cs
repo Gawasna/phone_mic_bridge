@@ -76,7 +76,14 @@ namespace PhoneMicBridge.Audio
             ObjectDisposedException.ThrowIf(_isDisposed, this);
             if (_captureDevice == null) return;
 
-            _wasapiCapture = new WasapiCapture(_captureDevice, true, 50);
+            if (_captureDevice.DataFlow == DataFlow.Render)
+            {
+                _wasapiCapture = new WasapiLoopbackCapture(_captureDevice);
+            }
+            else
+            {
+                _wasapiCapture = new WasapiCapture(_captureDevice, true, 50);
+            }
             _captureBuffer = new BufferedWaveProvider(_wasapiCapture.WaveFormat)
             {
                 DiscardOnBufferOverflow = true

@@ -102,6 +102,50 @@ namespace PhoneMicBridge.Devices
             }
         }
 
+        public static MMDevice FindCaptureOrLoopbackDevice(string? query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return GetDefaultCaptureDevice();
+            }
+
+            var enumerator = new MMDeviceEnumerator();
+
+            // 1. Exact match by ID in All active devices
+            try
+            {
+                var exact = enumerator.GetDevice(query);
+                if (exact != null && exact.State == DeviceState.Active)
+                    return exact;
+            }
+            catch { }
+
+            // 2. Search Render devices for speaker loopback (e.g. "FxSound", "Realtek")
+            var renderDevices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+            foreach (var d in renderDevices)
+            {
+                if (d.FriendlyName.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                    d.ID.Contains(query, StringComparison.OrdinalIgnoreCase))
+                {
+                    return d;
+                }
+            }
+
+            // 3. Search Capture devices for microphone
+            var captureDevices = enumerator.EnumerateAudioEndPoints(DataFlow.Capture, DeviceState.Active);
+            foreach (var d in captureDevices)
+            {
+                if (d.FriendlyName.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                    d.ID.Contains(query, StringComparison.OrdinalIgnoreCase))
+                {
+                    return d;
+                }
+            }
+
+            // Fallback: Default capture device
+            return GetDefaultCaptureDevice();
+        }
+
         private static bool IsMatchingHfpDevice(MMDevice device, string targetGuid)
         {
             if (!string.IsNullOrWhiteSpace(targetGuid) && device.ID.Contains(targetGuid, StringComparison.OrdinalIgnoreCase))
