@@ -47,7 +47,7 @@ namespace PhoneMicBridge.Cli
                         return options;
                     case "--test-tone":
                         options.Command = CliCommand.TestTone;
-                        if (i + 1 < args.Length && double.TryParse(args[i + 1], out double freq))
+                        if (i + 1 < args.Length && double.TryParse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture, out double freq))
                         {
                             options.ToneFrequency = freq;
                             i++;
@@ -59,7 +59,7 @@ namespace PhoneMicBridge.Cli
                         {
                             options.AudioFilePath = args[++i];
                         }
-                        if (i + 1 < args.Length && float.TryParse(args[i + 1], out float fg))
+                        if (i + 1 < args.Length && float.TryParse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture, out float fg))
                         {
                             options.FileGain = fg;
                             i++;
@@ -72,17 +72,17 @@ namespace PhoneMicBridge.Cli
                         if (i + 1 < args.Length) options.AudioFilePath = args[++i];
                         break;
                     case "--file-gain":
-                        if (i + 1 < args.Length && float.TryParse(args[i + 1], out float fgain)) { options.FileGain = fgain; i++; }
+                        if (i + 1 < args.Length && float.TryParse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture, out float fgain)) { options.FileGain = fgain; i++; }
                         break;
                     case "--tone":
                         options.EnableTone = true;
-                        if (i + 1 < args.Length && double.TryParse(args[i + 1], out double tf)) { options.ToneFrequency = tf; i++; }
+                        if (i + 1 < args.Length && double.TryParse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture, out double tf)) { options.ToneFrequency = tf; i++; }
                         break;
                     case "--tone-gain":
-                        if (i + 1 < args.Length && float.TryParse(args[i + 1], out float tgain)) { options.ToneGain = tgain; i++; }
+                        if (i + 1 < args.Length && float.TryParse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture, out float tgain)) { options.ToneGain = tgain; i++; }
                         break;
                     case "--mic-gain":
-                        if (i + 1 < args.Length && float.TryParse(args[i + 1], out float mgain)) { options.MicGain = mgain; i++; }
+                        if (i + 1 < args.Length && float.TryParse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture, out float mgain)) { options.MicGain = mgain; i++; }
                         break;
                     case "--no-mic":
                         options.EnableMic = false;

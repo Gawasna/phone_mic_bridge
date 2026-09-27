@@ -86,7 +86,8 @@ namespace PhoneMicBridge.Audio
             }
             _captureBuffer = new BufferedWaveProvider(_wasapiCapture.WaveFormat)
             {
-                DiscardOnBufferOverflow = true
+                DiscardOnBufferOverflow = true,
+                ReadFully = true
             };
 
             _wasapiCapture.DataAvailable += (s, e) =>

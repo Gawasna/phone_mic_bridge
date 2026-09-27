@@ -148,6 +148,49 @@
             android:fontFamily="monospace"/>
     </LinearLayout>
 
+    <!-- Routed Input Source Display -->
+    <TextView
+        android:id="@+id/tvInputSource"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="SOURCE: NONE"
+        android:textColor="#6B7280"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:fontFamily="monospace"
+        android:layout_marginBottom="12dp"/>
+
+    <!-- Proof Verification: Record & Playback -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp">
+
+        <Button
+            android:id="@+id/btnRecordSample"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:text="Record 5s"
+            android:textSize="11sp"
+            android:fontFamily="monospace"
+            android:backgroundTint="#059669"
+            android:layout_marginEnd="6dp"/>
+
+        <Button
+            android:id="@+id/btnPlaybackSample"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:text="Play (Speaker)"
+            android:textSize="11sp"
+            android:fontFamily="monospace"
+            android:backgroundTint="#2563EB"
+            android:enabled="false"
+            android:layout_marginStart="6dp"/>
+    </LinearLayout>
+
     <!-- Log -->
     <TextView
         android:layout_width="match_parent"

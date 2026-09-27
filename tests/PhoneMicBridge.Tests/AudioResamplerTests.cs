@@ -47,5 +47,23 @@ namespace PhoneMicBridge.Tests
             Assert.Equal(16000, normalized.WaveFormat.SampleRate);
             Assert.Equal(1, normalized.WaveFormat.Channels);
         }
+
+        [Fact]
+        public void NormalizeToDestination_ExtensibleFormat_ShouldWork()
+        {
+            var format = new WaveFormatExtensible(48000, 32, 2);
+            var bwp = new BufferedWaveProvider(format) { ReadFully = true };
+            float[] sampleData = new float[960];
+            for (int i = 0; i < sampleData.Length; i++) sampleData[i] = 0.5f;
+            byte[] byteData = new byte[sampleData.Length * 4];
+            Buffer.BlockCopy(sampleData, 0, byteData, 0, byteData.Length);
+            bwp.AddSamples(byteData, 0, byteData.Length);
+
+            var sp = bwp.ToSampleProvider();
+            var normalized = AudioResampler.NormalizeToDestination(sp, 16000, 1);
+            float[] outBuffer = new float[320];
+            int read = normalized.Read(outBuffer.AsSpan());
+            Assert.True(read > 0, $"Expected read > 0, got {read}");
+        }
     }
 }

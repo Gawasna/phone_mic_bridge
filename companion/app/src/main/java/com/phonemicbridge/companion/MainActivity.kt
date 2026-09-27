@@ -46,6 +46,13 @@ class MainActivity : AppCompatActivity() {
     private var playbackJob: Job? = null
     private val ioScope = CoroutineScope(Dispatchers.IO)
 
+    // Proof Verification: Sample Recording & Playback
+    private val recordedPcmList = ArrayList<ShortArray>()
+    @Volatile private var isRecordingSample = false
+    private val sampleTargetCount = 16000 * 5 // 5 seconds at 16kHz
+    private var sampleRecordedCount = 0
+    private var playbackSampleJob: Job? = null
+
     // SCO state receiver (logging / diagnostics only)
     private val scoReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -82,6 +89,12 @@ class MainActivity : AppCompatActivity() {
                 appendLog("[COMM_CB] SCO device ACTIVE -> starting VU meter")
                 updateScoUi(AudioManager.SCO_AUDIO_STATE_CONNECTED)
                 startVuMeter()
+                val scoInput = audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS)
+                    .firstOrNull { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO }
+                if (scoInput != null && audioRecord != null) {
+                    val ok = audioRecord?.setPreferredDevice(scoInput)
+                    appendLog("[COMM_CB] Set AudioRecord.preferredDevice('${scoInput.productName}'): $ok")
+                }
             } else {
                 appendLog("[COMM_CB] Non-SCO device active ($devName)")
             }
@@ -90,6 +103,8 @@ class MainActivity : AppCompatActivity() {
         binding.btnAttempt1.setOnClickListener { tryAttempt1() }
         binding.btnAttempt2.setOnClickListener { tryAttempt2() }
         binding.btnStop.setOnClickListener    { releaseAll() }
+        binding.btnRecordSample.setOnClickListener { startRecordingSample() }
+        binding.btnPlaybackSample.setOnClickListener { playRecordedSample() }
 
         appendLog("[INIT] SDK ${android.os.Build.VERSION.SDK_INT} | ${android.os.Build.MODEL}")
         appendLog("[INIT] BT enabled: ${isBtEnabled()}")
@@ -220,8 +235,29 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        // Explicitly set preferred device to Bluetooth SCO input if available
+        val scoInputDevice = audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS)
+            .firstOrNull { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO }
+        if (scoInputDevice != null) {
+            val prefSet = audioRecord?.setPreferredDevice(scoInputDevice)
+            appendLog("[VU] Set AudioRecord.preferredDevice('${scoInputDevice.productName}', id=${scoInputDevice.id}): $prefSet")
+        } else {
+            appendLog("[VU] No SCO input device in GET_DEVICES_INPUTS yet")
+        }
+
+        // Register routing changed listener on AudioRecord
+        audioRecord?.addOnRoutingChangedListener({ record ->
+            val routed = record.routedDevice
+            appendLog("[VU_ROUTE] AudioRecord routed to: ${routed?.productName} type=${deviceTypeName(routed?.type ?: -1)}")
+            mainHandler.post { updateRoutingUi(routed) }
+        }, mainHandler)
+
         audioRecord?.startRecording()
-        mainHandler.post { binding.tvRecordState.text = "RECORDING" }
+        mainHandler.post { 
+            binding.tvRecordState.text = "RECORDING"
+            binding.btnRecordSample.isEnabled = true
+            updateRoutingUi(audioRecord?.routedDevice)
+        }
         appendLog("[VU] AudioRecord started - source: VOICE_COMMUNICATION")
 
         // Also start keep-alive AudioTrack to maintain full-duplex SCO link
@@ -267,6 +303,27 @@ class MainActivity : AppCompatActivity() {
             while (audioRecord?.recordingState == AudioRecord.RECORDSTATE_RECORDING) {
                 val read = audioRecord?.read(buffer, 0, buffer.size) ?: break
                 if (read > 0) {
+                    if (isRecordingSample) {
+                        val chunk = buffer.copyOf(read)
+                        synchronized(recordedPcmList) {
+                            recordedPcmList.add(chunk)
+                        }
+                        sampleRecordedCount += read
+                        val pct = (sampleRecordedCount * 100 / sampleTargetCount).coerceAtMost(100)
+                        mainHandler.post {
+                            binding.btnRecordSample.text = "RECORDING ($pct%)..."
+                        }
+                        if (sampleRecordedCount >= sampleTargetCount) {
+                            isRecordingSample = false
+                            mainHandler.post {
+                                binding.btnRecordSample.text = "Record 5s"
+                                binding.btnRecordSample.isEnabled = true
+                                binding.btnPlaybackSample.isEnabled = true
+                                appendLog("[REC] Captured 5s sample (${sampleRecordedCount} samples). Tap 'Play' to listen via speaker!")
+                            }
+                        }
+                    }
+
                     val rms = computeRms(buffer, read)
                     val dbfs = if (rms > 0) 20 * log10(rms / 32767.0) else -90.0
                     val percent = ((dbfs + 60) / 60.0 * 100).coerceIn(0.0, 100.0).toInt()
@@ -308,10 +365,103 @@ class MainActivity : AppCompatActivity() {
         } catch (_: Exception) {}
         audioTrack = null
 
+        isRecordingSample = false
         mainHandler.post {
             binding.tvRecordState.text = "IDLE"
             binding.vuMeter.progress = 0
             binding.tvDbLevel.text = "--- dBFS"
+            binding.tvInputSource.text = "SOURCE: NONE"
+            binding.tvInputSource.setTextColor(android.graphics.Color.parseColor("#6B7280"))
+            binding.btnRecordSample.text = "Record 5s"
+            binding.btnRecordSample.isEnabled = false
+        }
+    }
+
+    private fun updateRoutingUi(routed: AudioDeviceInfo?) {
+        val devName = routed?.let { "'${it.productName}' (${deviceTypeName(it.type)})" } ?: "UNKNOWN"
+        val isSco = routed?.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
+        binding.tvInputSource.text = if (isSco) "SOURCE: $devName" else "WARN: $devName (NOT SCO!)"
+        binding.tvInputSource.setTextColor(
+            if (isSco) android.graphics.Color.parseColor("#10B981")
+            else android.graphics.Color.parseColor("#EF4444")
+        )
+    }
+
+    private fun startRecordingSample() {
+        if (audioRecord == null || audioRecord?.recordingState != AudioRecord.RECORDSTATE_RECORDING) {
+            appendLog("[REC] Cannot record: AudioRecord is not running. Connect SCO first!")
+            return
+        }
+        synchronized(recordedPcmList) {
+            recordedPcmList.clear()
+        }
+        sampleRecordedCount = 0
+        isRecordingSample = true
+        binding.btnRecordSample.isEnabled = false
+        binding.btnPlaybackSample.isEnabled = false
+        binding.btnRecordSample.text = "RECORDING (0%)..."
+        appendLog("[REC] Started recording 5s audio sample...")
+    }
+
+    private fun playRecordedSample() {
+        val hasSamples = synchronized(recordedPcmList) { recordedPcmList.isNotEmpty() }
+        if (!hasSamples) {
+            appendLog("[PLAY] No recorded sample to play")
+            return
+        }
+        binding.btnPlaybackSample.isEnabled = false
+        binding.btnPlaybackSample.text = "PLAYING..."
+        appendLog("[PLAY] Playing 5s sample out loud through phone speaker...")
+
+        playbackSampleJob = ioScope.launch {
+            try {
+                val sampleRate = 16000
+                val trackBufSize = AudioTrack.getMinBufferSize(
+                    sampleRate,
+                    AudioFormat.CHANNEL_OUT_MONO,
+                    AudioFormat.ENCODING_PCM_16BIT
+                ).coerceAtLeast(3200)
+
+                val audioAttributes = AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .build()
+
+                val format = AudioFormat.Builder()
+                    .setSampleRate(sampleRate)
+                    .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
+                    .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                    .build()
+
+                val player = AudioTrack.Builder()
+                    .setAudioAttributes(audioAttributes)
+                    .setAudioFormat(format)
+                    .setBufferSizeInBytes(trackBufSize)
+                    .setTransferMode(AudioTrack.MODE_STREAM)
+                    .build()
+
+                val speakerDevice = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+                    .firstOrNull { it.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER }
+                if (speakerDevice != null) {
+                    player.setPreferredDevice(speakerDevice)
+                }
+
+                player.play()
+                val snapshot = synchronized(recordedPcmList) { ArrayList(recordedPcmList) }
+                for (chunk in snapshot) {
+                    player.write(chunk, 0, chunk.size, AudioTrack.WRITE_BLOCKING)
+                }
+                player.stop()
+                player.release()
+                appendLog("[PLAY] Playback completed.")
+            } catch (e: Exception) {
+                appendLog("[PLAY] Playback error: ${e.message}")
+            } finally {
+                mainHandler.post {
+                    binding.btnPlaybackSample.text = "Play (Speaker)"
+                    binding.btnPlaybackSample.isEnabled = true
+                }
+            }
         }
     }
 
@@ -357,6 +507,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun appendLog(msg: String) {
+        android.util.Log.d("PhoneMicBridge", msg)
         val ts = SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault()).format(Date())
         val line = "[$ts] $msg\n"
         logBuilder.append(line)
