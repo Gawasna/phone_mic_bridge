@@ -55,7 +55,10 @@ class MainActivity : AppCompatActivity() {
     @Volatile private var isStartingVu = false
     private var playbackSampleJob: Job? = null
 
-    // SCO state receiver - triggers routing and VU meter when HCI link is confirmed
+    // Timeout handler for HyperOS 8-second SCO delay
+    private var scoTimeoutRunnable: Runnable? = null
+    
+    // SCO state receiver - triggers full-duplex audio setup when HCI link is confirmed
     private val scoReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val state = intent.getIntExtra(AudioManager.EXTRA_SCO_AUDIO_STATE, -1)
@@ -68,10 +71,14 @@ class MainActivity : AppCompatActivity() {
             }
             appendLog("[SCO_BROADCAST] $stateName")
             if (state == AudioManager.SCO_AUDIO_STATE_CONNECTED) {
-                // HCI SCO link confirmed at kernel level (btscoOn=1 will follow).
-                // Now enforce BT_SCO routing and start VU meter.
-                appendLog("[SCO_BROADCAST] HCI SCO confirmed -> activating BT_SCO device routing")
-                activateBtScoDevice()
+                // Cancel timeout - SCO established successfully
+                scoTimeoutRunnable?.let { mainHandler.removeCallbacks(it) }
+                appendLog("[SCO_BROADCAST] HCI SCO confirmed -> preparing full-duplex endpoints")
+                onScoConnected()
+            } else if (state == AudioManager.SCO_AUDIO_STATE_DISCONNECTED) {
+                appendLog("[SCO_BROADCAST] SCO disconnected")
+                stopVuMeter()
+                updateScoUi(AudioManager.SCO_AUDIO_STATE_DISCONNECTED)
             }
         }
     }
@@ -89,41 +96,8 @@ class MainActivity : AppCompatActivity() {
             RECEIVER_EXPORTED
         )
 
-        // Register modern communication device listener as single source of truth
-        audioManager.addOnCommunicationDeviceChangedListener(mainExecutor) { device ->
-            val devName = device?.let { "'${it.productName}' type=${deviceTypeName(it.type)}" } ?: "null"
-            appendLog("[COMM_CB] Device changed: $devName")
-            if (device?.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO) {
-                appendLog("[COMM_CB] SCO device ACTIVE -> starting VU meter")
-                updateScoUi(AudioManager.SCO_AUDIO_STATE_CONNECTED)
-                startVuMeter()
-                val scoInput = audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS)
-                    .firstOrNull { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO }
-                if (scoInput != null && audioRecord != null) {
-                    val ok = audioRecord?.setPreferredDevice(scoInput)
-                    appendLog("[COMM_CB] Set AudioRecord.preferredDevice('${scoInput.productName}'): $ok")
-                }
-            } else {
-                appendLog("[COMM_CB] Non-SCO device active ($devName)")
-            }
-        }
-
-        // Telecom ConnectionService integration for holding active HFP session
-        BridgeConnectionService.registerPhoneAccountIfNeeded(this)
-        BridgeConnectionService.onConnectionActive = {
-            mainHandler.post {
-                appendLog("[TELECOM] Session ACTIVE -> setting communication device to BT_SCO")
-                activateBtScoDevice()
-            }
-        }
-        BridgeConnectionService.onConnectionDisconnected = {
-            mainHandler.post {
-                appendLog("[TELECOM] Session DISCONNECTED")
-            }
-        }
-
-        binding.btnAttempt1.setOnClickListener { tryAttempt1() }
-        binding.btnAttempt2.setOnClickListener { tryAttempt2() }
+        binding.btnAttempt1.setOnClickListener { connectSco() }
+        binding.btnAttempt2.setOnClickListener { connectSco() } // Same method now
         binding.btnStop.setOnClickListener    { releaseAll() }
         binding.btnRecordSample.setOnClickListener { startRecordingSample() }
         binding.btnPlaybackSample.setOnClickListener { playRecordedSample() }
@@ -134,238 +108,282 @@ class MainActivity : AppCompatActivity() {
         logAvailableCommunicationDevices()
     }
 
-    // -------------------------------------------------------------------------
-    // Attempt 1: Legacy startBluetoothSco (API 16+, deprecated in 31 but still works)
-    // -------------------------------------------------------------------------
-    @Suppress("DEPRECATION")
-    private fun tryAttempt1() {
-        if (!checkPermissions()) return
-        appendLog("[A1] Attempt 1: setMode(IN_COMMUNICATION) + startBluetoothSco()")
+    // =========================================================================
+    // MAIN SCO CONNECTION METHOD (Web Research Architecture)
+    // =========================================================================
+    
+    private fun connectSco() {
+        appendLog("[CONNECT] ═══════════════════════════════════════")
+        appendLog("[CONNECT] Starting SCO connection (Web Research architecture)")
+        
+        // PHASE 0: Pre-flight Checks
+        if (!verifyAllPermissionsGranted()) {
+            appendLog("[ABORT] Required permissions not granted")
+            return
+        }
+        appendLog("[PHASE0] ✓ All permissions verified")
+        
+        // PHASE 1: Request Exclusive AudioFocus (Critical for HyperOS)
+        if (!requestExclusiveAudioFocus()) {
+            appendLog("[WARN] AudioFocus not granted - HyperOS may delay SCO")
+        } else {
+            appendLog("[PHASE1] ✓ Exclusive AudioFocus granted")
+        }
+        
+        // PHASE 2: System-Level SCO Establishment
         audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
-        audioManager.startBluetoothSco()
-        audioManager.isBluetoothScoOn = true
-        appendLog("[A1] startBluetoothSco() called - waiting for broadcast...")
-        updateScoUi(-99) // pending
-    }
-
-    // -------------------------------------------------------------------------
-    // Attempt 2: Telecom self-managed call (only confirmed path for HCI SCO on HyperOS)
-    // Flow: addNewIncomingCall -> onCreateIncomingConnection -> setActive -> ROUTE_BLUETOOTH
-    //       -> HeadsetService.connectAudio() -> HCI SCO link -> btscoOn=1
-    // onConnectionActive callback then calls activateBtScoDevice for setCommunicationDevice + VU
-    // -------------------------------------------------------------------------
-    private fun tryAttempt2() {
-        if (!checkPermissions()) return
-        appendLog("[A2] Starting Telecom self-managed call session for HCI SCO...")
-        val ok = BridgeConnectionService.startCallSession(this)
-        appendLog("[A2] startCallSession returned: $ok")
-        if (!ok) {
-            appendLog("[A2] FAIL: Telecom session could not start. Check MANAGE_OWN_CALLS permission.")
-        }
-        updateScoUi(-99)
-    }
-
-    private fun activateBtScoDevice() {
-        audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
-
-        val available = audioManager.availableCommunicationDevices
-        appendLog("[A2] Available comm devices: ${available.size}")
-        available.forEach { dev ->
-            appendLog("[A2]   type=${deviceTypeName(dev.type)} id=${dev.id} name='${dev.productName}'")
-        }
-
-        val btScoDevice = available.firstOrNull {
-            it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO
-        }
-
+        appendLog("[PHASE2] Audio mode set to MODE_IN_COMMUNICATION")
+        
+        val btScoDevice = audioManager.availableCommunicationDevices
+            .firstOrNull { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO }
+            
         if (btScoDevice == null) {
-            appendLog("[A2] No TYPE_BLUETOOTH_SCO found. Attempting auto-connect to paired PC...")
-            connectPairedPc()
+            appendLog("[ABORT] No BT_SCO device in availableCommunicationDevices")
+            appendLog("[ABORT] Available devices:")
+            audioManager.availableCommunicationDevices.forEach { dev ->
+                appendLog("[ABORT]   - ${deviceTypeName(dev.type)}: '${dev.productName}'")
+            }
             return
         }
-
-        appendLog("[A2] Found BT SCO device: '${btScoDevice.productName}' id=${btScoDevice.id}")
+        
+        appendLog("[PHASE2] Found BT_SCO device: '${btScoDevice.productName}'")
+        
         val success = audioManager.setCommunicationDevice(btScoDevice)
-        appendLog("[A2] setCommunicationDevice() returned: $success")
-        if (success) {
-            if (audioManager.communicationDevice?.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO) {
-                appendLog("[A2] Communication device already active -> starting VU meter")
-                updateScoUi(AudioManager.SCO_AUDIO_STATE_CONNECTED)
-                startVuMeter()
-            } else {
-                appendLog("[A2] Waiting for communication device change callback...")
-                updateScoUi(-99)
-            }
-        }
-    }
-
-    private fun connectPairedPc() {
-        try {
-            val btManager = getSystemService(BluetoothManager::class.java)
-            val adapter = btManager?.adapter ?: return
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-                appendLog("[BT_CONN] BLUETOOTH_CONNECT not granted")
-                return
-            }
-            val msi = adapter.bondedDevices.firstOrNull { 
-                it.name?.contains("MSI", ignoreCase = true) == true || it.address.equals("14:75:5B:44:76:0D", ignoreCase = true) 
-            }
-            if (msi != null) {
-                appendLog("[BT_CONN] Initiating connection to '${msi.name}' (${msi.address})...")
-                val connectMethod = msi.javaClass.getMethod("connect")
-                val res = connectMethod.invoke(msi)
-                appendLog("[BT_CONN] connect() invoked, res=$res. Wait ~2s then tap Attempt 2 again.")
-            } else {
-                appendLog("[BT_CONN] No paired PC (MSI) found in bonded devices")
-            }
-        } catch (e: Exception) {
-            appendLog("[BT_CONN] Error calling connect(): ${e.message}")
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // Release all
-    // -------------------------------------------------------------------------
-    @Suppress("DEPRECATION")
-    private fun releaseAll() {
-        appendLog("[STOP] Releasing SCO session...")
-        BridgeConnectionService.endCallSession()
-        stopVuMeter()
-        audioManager.isBluetoothScoOn = false
-        audioManager.stopBluetoothSco()
-        audioManager.clearCommunicationDevice()
-        audioManager.mode = AudioManager.MODE_NORMAL
-        updateScoUi(AudioManager.SCO_AUDIO_STATE_DISCONNECTED)
-        appendLog("[STOP] Released. Mode reset to NORMAL.")
-    }
-
-    // -------------------------------------------------------------------------
-    // VU Meter - reads from VOICE_COMMUNICATION source (BT SCO mic)
-    // -------------------------------------------------------------------------
-    private fun startVuMeter() {
-        if (isStartingVu) {
-            appendLog("[VU] startVuMeter already in progress, skipping")
+        if (!success) {
+            appendLog("[ABORT] setCommunicationDevice() returned false")
             return
         }
-        if (audioRecord != null && audioRecord?.recordingState == AudioRecord.RECORDSTATE_RECORDING) {
-            appendLog("[VU] AudioRecord already active, skipping restart")
+        appendLog("[PHASE2] ✓ setCommunicationDevice() successful")
+        
+        // PHASE 3: Install 8-Second Timeout for HyperOS
+        updateScoUi(-99) // PENDING state
+        
+        scoTimeoutRunnable = Runnable {
+            if (audioManager.communicationDevice?.type != AudioDeviceInfo.TYPE_BLUETOOTH_SCO) {
+                appendLog("[TIMEOUT] 8 seconds elapsed, SCO not connected")
+                appendLog("[TIMEOUT] Falling back to SPEAKER")
+                fallbackToSpeaker()
+            }
+        }
+        mainHandler.postDelayed(scoTimeoutRunnable!!, 8000)
+        appendLog("[PHASE3] ✓ 8-second timeout armed for HyperOS")
+        appendLog("[PHASE3] Waiting for SCO_AUDIO_STATE_CONNECTED broadcast...")
+    }
+
+    // =========================================================================
+    // SCO CONNECTED CALLBACK (Called from broadcast receiver)
+    // =========================================================================
+    
+    private fun onScoConnected() {
+        appendLog("[PHASE4] ═══════════════════════════════════════")
+        appendLog("[PHASE4] SCO_CONNECTED received - preparing full-duplex")
+        
+        val scoInput = audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS)
+            .firstOrNull { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO }
+        val scoOutput = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
+            .firstOrNull { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO }
+        
+        if (scoInput == null || scoOutput == null) {
+            appendLog("[ERROR] SCO devices not found in hardware enumeration")
             return
         }
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
-            != PackageManager.PERMISSION_GRANTED) {
-            appendLog("[VU] RECORD_AUDIO permission missing - cannot start VU meter")
-            return
-        }
+        
+        appendLog("[PHASE4] ✓ SCO Input: '${scoInput.productName}' (id=${scoInput.id})")
+        appendLog("[PHASE4] ✓ SCO Output: '${scoOutput.productName}' (id=${scoOutput.id})")
+        
         val sampleRate = 16000
         val bufSize = AudioRecord.getMinBufferSize(
             sampleRate,
             AudioFormat.CHANNEL_IN_MONO,
             AudioFormat.ENCODING_PCM_16BIT
         ).coerceAtLeast(3200)
-
-        isStartingVu = true
-        try {
-            stopVuMeter()
-
-            audioRecord = AudioRecord(
-                MediaRecorder.AudioSource.VOICE_COMMUNICATION,
-                sampleRate,
-                AudioFormat.CHANNEL_IN_MONO,
-                AudioFormat.ENCODING_PCM_16BIT,
-                bufSize
-            )
-
-            if (audioRecord?.state != AudioRecord.STATE_INITIALIZED) {
-                appendLog("[VU] AudioRecord failed to initialize (state=${audioRecord?.state})")
-                audioRecord?.release()
-                audioRecord = null
-                return
-            }
-
-            // Explicitly set preferred device to Bluetooth SCO input if available
-            val scoInputDevice = audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS)
-                .firstOrNull { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO }
-            if (scoInputDevice != null) {
-                val prefSet = audioRecord?.setPreferredDevice(scoInputDevice)
-                appendLog("[VU] Set AudioRecord.preferredDevice('${scoInputDevice.productName}', id=${scoInputDevice.id}): $prefSet")
-            } else {
-                appendLog("[VU] No SCO input device in GET_DEVICES_INPUTS yet")
-            }
-
-            // Register routing changed listener on AudioRecord
-            audioRecord?.addOnRoutingChangedListener({ record ->
-                val routed = record.routedDevice
-                appendLog("[VU_ROUTE] AudioRecord routed to: ${routed?.productName} type=${deviceTypeName(routed?.type ?: -1)}")
-                mainHandler.post { updateRoutingUi(routed) }
-            }, mainHandler)
-
-            audioRecord?.startRecording()
-            mainHandler.post { 
-                binding.tvRecordState.text = "RECORDING"
-                binding.btnRecordSample.isEnabled = true
-                updateRoutingUi(audioRecord?.routedDevice)
-            }
-            appendLog("[VU] AudioRecord started - source: VOICE_COMMUNICATION")
-
-            // Also start keep-alive AudioTrack to maintain full-duplex SCO link
-            try {
-                val trackBufSize = AudioTrack.getMinBufferSize(
-                    sampleRate,
-                    AudioFormat.CHANNEL_OUT_MONO,
-                    AudioFormat.ENCODING_PCM_16BIT
-                ).coerceAtLeast(3200)
-
-                val audioAttributes = AudioAttributes.Builder()
+        
+        stopVuMeter()
+        
+        audioRecord = AudioRecord(
+            MediaRecorder.AudioSource.VOICE_COMMUNICATION,
+            sampleRate,
+            AudioFormat.CHANNEL_IN_MONO,
+            AudioFormat.ENCODING_PCM_16BIT,
+            bufSize
+        )
+        
+        if (audioRecord?.state != AudioRecord.STATE_INITIALIZED) {
+            appendLog("[ERROR] AudioRecord failed to initialize")
+            audioRecord?.release()
+            audioRecord = null
+            return
+        }
+        appendLog("[PHASE5] ✓ AudioRecord created (VOICE_COMMUNICATION)")
+        
+        val trackBufSize = AudioTrack.getMinBufferSize(
+            sampleRate,
+            AudioFormat.CHANNEL_OUT_MONO,
+            AudioFormat.ENCODING_PCM_16BIT
+        ).coerceAtLeast(3200)
+        
+        audioTrack = AudioTrack.Builder()
+            .setAudioAttributes(
+                AudioAttributes.Builder()
                     .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
                     .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
                     .build()
-
-                val format = AudioFormat.Builder()
+            )
+            .setAudioFormat(
+                AudioFormat.Builder()
                     .setSampleRate(sampleRate)
                     .setChannelMask(AudioFormat.CHANNEL_OUT_MONO)
                     .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
                     .build()
-
-                audioTrack = AudioTrack.Builder()
-                    .setAudioAttributes(audioAttributes)
-                    .setAudioFormat(format)
-                    .setBufferSizeInBytes(trackBufSize)
-                    .setTransferMode(AudioTrack.MODE_STREAM)
-                    .build()
-
-                val btScoOutput = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)
-                    .firstOrNull { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO }
-                    ?: audioManager.availableCommunicationDevices.firstOrNull { it.type == AudioDeviceInfo.TYPE_BLUETOOTH_SCO }
-                if (btScoOutput != null) {
-                    val ok = audioTrack?.setPreferredDevice(btScoOutput)
-                    appendLog("[VU] Set AudioTrack.preferredDevice('${btScoOutput.productName}'): $ok")
-                }
-
-                audioTrack?.addOnRoutingChangedListener({ track ->
-                    val r = track.routedDevice
-                    appendLog("[TRACK_ROUTE] AudioTrack routed to: ${r?.productName} type=${deviceTypeName(r?.type ?: -1)}")
-                }, mainHandler)
-
-                audioTrack?.play()
-                playbackJob = ioScope.launch {
-                    val silence = ShortArray(trackBufSize / 2)
-                    while (isActive && audioTrack?.playState == AudioTrack.PLAYSTATE_PLAYING) {
-                        audioTrack?.write(silence, 0, silence.size, AudioTrack.WRITE_BLOCKING)
-                    }
-                }
-                appendLog("[VU] AudioTrack keep-alive started on BT_SCO")
-            } catch (e: Exception) {
-                appendLog("[VU] AudioTrack init warning: ${e.message}")
-            }
-        } finally {
-            isStartingVu = false
+            )
+            .setBufferSizeInBytes(trackBufSize)
+            .setTransferMode(AudioTrack.MODE_STREAM)
+            .build()
+        
+        if (audioTrack?.state != AudioTrack.STATE_INITIALIZED) {
+            appendLog("[ERROR] AudioTrack failed to initialize")
+            audioTrack?.release()
+            audioTrack = null
+            return
         }
+        appendLog("[PHASE5] ✓ AudioTrack created (USAGE_VOICE_COMMUNICATION)")
+        
+        // CRITICAL TIMING: Set preferred AFTER SCO connected, BEFORE start
+        val recordPrefSet = audioRecord?.setPreferredDevice(scoInput)
+        val trackPrefSet = audioTrack?.setPreferredDevice(scoOutput)
+        
+        appendLog("[PHASE6] ✓ AudioRecord.setPreferredDevice(): $recordPrefSet")
+        appendLog("[PHASE6] ✓ AudioTrack.setPreferredDevice(): $trackPrefSet")
+        
+        audioRecord?.addOnRoutingChangedListener({ record ->
+            val routed = record.routedDevice
+            appendLog("[ROUTE] AudioRecord → ${routed?.productName} (${deviceTypeName(routed?.type ?: -1)})")
+            mainHandler.post { updateRoutingUi(routed) }
+        }, mainHandler)
+        
+        audioTrack?.addOnRoutingChangedListener({ track ->
+            val routed = track.routedDevice
+            appendLog("[ROUTE] AudioTrack → ${routed?.productName} (${deviceTypeName(routed?.type ?: -1)})")
+        }, mainHandler)
+        
+        audioRecord?.startRecording()
+        audioTrack?.play()
+        
+        appendLog("[PHASE7] ✓ AudioRecord.startRecording()")
+        appendLog("[PHASE7] ✓ AudioTrack.play()")
+        
+        playbackJob = ioScope.launch {
+            val silence = ShortArray(trackBufSize / 2)
+            while (isActive && audioTrack?.playState == AudioTrack.PLAYSTATE_PLAYING) {
+                audioTrack?.write(silence, 0, silence.size, AudioTrack.WRITE_BLOCKING)
+            }
+        }
+        appendLog("[PHASE7] ✓ AudioTrack keep-alive loop started")
+        
+        startVuMeterLoop()
+        
+        appendLog("[SUCCESS] ═══════════════════════════════════════")
+        appendLog("[SUCCESS] Full-duplex SCO streaming ACTIVE")
+        
+        updateScoUi(AudioManager.SCO_AUDIO_STATE_CONNECTED)
+        mainHandler.post {
+            binding.tvRecordState.text = "RECORDING"
+            binding.btnRecordSample.isEnabled = true
+        }
+    }
+    
+    // =========================================================================
+    // HELPER METHODS
+    // =========================================================================
+    
+    private fun verifyAllPermissionsGranted(): Boolean {
+        val required = mapOf(
+            "RECORD_AUDIO" to Manifest.permission.RECORD_AUDIO,
+            "BLUETOOTH_CONNECT" to Manifest.permission.BLUETOOTH_CONNECT,
+            "MODIFY_AUDIO_SETTINGS" to Manifest.permission.MODIFY_AUDIO_SETTINGS
+        )
+        
+        val missing = required.filter { (_, perm) ->
+            ContextCompat.checkSelfPermission(this, perm) != PackageManager.PERMISSION_GRANTED
+        }
+        
+        if (missing.isNotEmpty()) {
+            appendLog("[PERM] Missing permissions: ${missing.keys.joinToString()}")
+            ActivityCompat.requestPermissions(
+                this,
+                missing.values.toTypedArray(),
+                1
+            )
+            return false
+        }
+        
+        return true
+    }
+    
+    private fun requestExclusiveAudioFocus(): Boolean {
+        @Suppress("DEPRECATION")
+        val result = audioManager.requestAudioFocus(
+            null,
+            AudioManager.STREAM_VOICE_CALL,
+            AudioManager.AUDIOFOCUS_GAIN_TRANSIENT_EXCLUSIVE
+        )
+        return result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+    }
+    
+    private fun fallbackToSpeaker() {
+        appendLog("[FALLBACK] Clearing BT_SCO, routing to SPEAKER")
+        audioManager.clearCommunicationDevice()
+        
+        val speaker = audioManager.availableCommunicationDevices
+            .firstOrNull { it.type == AudioDeviceInfo.TYPE_BUILTIN_SPEAKER }
+        
+        if (speaker != null) {
+            audioManager.setCommunicationDevice(speaker)
+            appendLog("[FALLBACK] Speaker device set: '${speaker.productName}'")
+        }
+        
+        updateScoUi(AudioManager.SCO_AUDIO_STATE_ERROR)
+    }
 
+    // =========================================================================
+    // RELEASE / CLEANUP
+    // =========================================================================
+    
+    private fun releaseAll() {
+        appendLog("[STOP] Releasing SCO session...")
+        
+        scoTimeoutRunnable?.let { mainHandler.removeCallbacks(it) }
+        
+        stopVuMeter()
+        
+        @Suppress("DEPRECATION")
+        audioManager.abandonAudioFocus(null)
+        
+        audioManager.clearCommunicationDevice()
+        audioManager.mode = AudioManager.MODE_NORMAL
+        
+        updateScoUi(AudioManager.SCO_AUDIO_STATE_DISCONNECTED)
+        appendLog("[STOP] Released. Mode reset to NORMAL.")
+    }
+
+    // =========================================================================
+    // VU METER LOOP
+    // =========================================================================
+    
+    private fun startVuMeterLoop() {
         vuJob = ioScope.launch {
+            val sampleRate = 16000
+            val bufSize = AudioRecord.getMinBufferSize(
+                sampleRate,
+                AudioFormat.CHANNEL_IN_MONO,
+                AudioFormat.ENCODING_PCM_16BIT
+            ).coerceAtLeast(3200)
             val buffer = ShortArray(bufSize / 2)
+            
             while (isActive && audioRecord?.recordingState == AudioRecord.RECORDSTATE_RECORDING) {
                 val read = audioRecord?.read(buffer, 0, buffer.size) ?: break
                 if (read > 0) {
+                    // Handle sample recording if active
                     if (isRecordingSample) {
                         val chunk = buffer.copyOf(read)
                         synchronized(recordedPcmList) {
@@ -382,24 +400,24 @@ class MainActivity : AppCompatActivity() {
                                 binding.btnRecordSample.text = "Record 5s"
                                 binding.btnRecordSample.isEnabled = true
                                 binding.btnPlaybackSample.isEnabled = true
-                                appendLog("[REC] Captured 5s sample (${sampleRecordedCount} samples). Tap 'Play' to listen via speaker!")
+                                appendLog("[REC] Captured 5s sample. Tap 'Play' to listen!")
                             }
                         }
                     }
-
+                    
+                    // Calculate VU meter
                     val rms = computeRms(buffer, read)
                     val dbfs = if (rms > 0) 20 * log10(rms / 32767.0) else -90.0
                     val percent = ((dbfs + 60) / 60.0 * 100).coerceIn(0.0, 100.0).toInt()
-
+                    
                     mainHandler.post {
                         binding.vuMeter.progress = percent
                         binding.tvDbLevel.text = "%.1f dBFS".format(dbfs)
-                        // Color: green > -20, amber > -40, red otherwise
                         val color = when {
-                            dbfs > -6  -> android.graphics.Color.parseColor("#EF4444") // clip warn
-                            dbfs > -20 -> android.graphics.Color.parseColor("#10B981") // good
-                            dbfs > -40 -> android.graphics.Color.parseColor("#F59E0B") // low
-                            else       -> android.graphics.Color.parseColor("#374151") // silence
+                            dbfs > -6  -> android.graphics.Color.parseColor("#EF4444")
+                            dbfs > -20 -> android.graphics.Color.parseColor("#10B981")
+                            dbfs > -40 -> android.graphics.Color.parseColor("#F59E0B")
+                            else       -> android.graphics.Color.parseColor("#374151")
                         }
                         binding.tvDbLevel.setTextColor(color)
                     }
