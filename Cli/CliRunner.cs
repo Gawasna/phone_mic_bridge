@@ -36,6 +36,7 @@ namespace PhoneMicBridge.Cli
                 case CliCommand.PlayFile:
                     RunPlayFile(options);
                     break;
+                case CliCommand.Monitor:
                 case CliCommand.Mix:
                 default:
                     RunMixer(options);
@@ -65,6 +66,7 @@ namespace PhoneMicBridge.Cli
             Console.WriteLine("      --tone-gain [g]     : Âm lượng tone (mặc định 0.35)");
             Console.WriteLine("      --mic-gain [g]      : Độ nhạy micro (mặc định 1.0)");
             Console.WriteLine("      --no-mic            : Tắt micro ban đầu, chỉ phát file/tone");
+            Console.WriteLine("      --monitor           : Bật Host Loopback Monitor (nghe Rx stream từ điện thoại ra loa PC)");
             Console.WriteLine("      --input <name/guid> : Nguồn thu âm hoặc ngõ ra để loopback (vd: 'FxSound', 'Realtek')");
             Console.WriteLine("      --speaker <name>    : Chỉ định ngõ ra loa PC để capture loopback (alias của --input)");
             Console.WriteLine("      --target-guid <id>  : Tùy chỉnh GUID của thiết bị đích HFP");
@@ -203,6 +205,29 @@ namespace PhoneMicBridge.Cli
             Console.WriteLine("Phím tắt: 'm'=Bật/Tắt Mic | 'f'=Bật/Tắt File Nhạc | 'q'=Thoát");
             Console.WriteLine("----------------------------------------------------------\n");
 
+            HostAudioMonitor? monitor = null;
+            if (options.EnableMonitor)
+            {
+                var hfpIn = DeviceDiscovery.FindMatchingHfpCaptureDevice(targetDev);
+                if (hfpIn != null)
+                {
+                    try
+                    {
+                        monitor = new HostAudioMonitor(hfpIn);
+                        monitor.Start();
+                        Console.WriteLine($"[MONITOR]: Đã bật Host Loopback Monitor ({hfpIn.FriendlyName} -> Default Speaker)");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[CẢNH BÁO] Không thể khởi động Monitor: {ex.Message}");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("[CẢNH BÁO] Không tìm thấy HFP capture device để kích hoạt monitor!");
+                }
+            }
+
             engine.Start();
 
             while (true)
@@ -235,11 +260,17 @@ namespace PhoneMicBridge.Cli
                         : "PAUSED   ")
                     : "NONE     ";
 
-                Console.Write($"\r[MIC]: {micStatus} | [FILE]: {fileStatus} | [OUT PEAK]: {engine.OutputMeter.Peak:F2}  ");
+                string monitorStatus = monitor?.IsRunning == true ? "ON " : "OFF";
+                Console.Write($"\r[MIC]: {micStatus} | [FILE]: {fileStatus} | [MONITOR]: {monitorStatus} | [OUT PEAK]: {engine.OutputMeter.Peak:F2}  ");
                 Thread.Sleep(150);
             }
 
             Console.WriteLine("\nĐang dừng engine...");
+            if (monitor != null)
+            {
+                monitor.Stop();
+                monitor.Dispose();
+            }
             engine.Stop();
             Console.WriteLine("[DONE] Đã dừng pipeline an toàn.");
         }

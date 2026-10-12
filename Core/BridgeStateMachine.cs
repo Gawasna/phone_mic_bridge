@@ -89,18 +89,27 @@ namespace PhoneMicBridge.Core
                 (BridgeState.Disconnected, BridgeState.Connecting) => true,
                 (BridgeState.Connecting, BridgeState.Streaming) => true,
                 (BridgeState.Connecting, BridgeState.Stopped) => true,
+                (BridgeState.Connecting, BridgeState.Degraded) => true,
                 (BridgeState.Connecting, BridgeState.Error) => true,
 
                 (BridgeState.Streaming, BridgeState.Paused) => true,
                 (BridgeState.Streaming, BridgeState.Stopped) => true,
+                (BridgeState.Streaming, BridgeState.Degraded) => true,
                 (BridgeState.Streaming, BridgeState.Error) => true,
 
                 (BridgeState.Paused, BridgeState.Streaming) => true,
                 (BridgeState.Paused, BridgeState.Stopped) => true,
+                (BridgeState.Paused, BridgeState.Degraded) => true,
                 (BridgeState.Paused, BridgeState.Error) => true,
 
                 (BridgeState.Stopped, BridgeState.Connecting) => true,
                 (BridgeState.Stopped, BridgeState.Disconnected) => true,
+
+                (BridgeState.Degraded, BridgeState.Connecting) => true,
+                (BridgeState.Degraded, BridgeState.Streaming) => true,
+                (BridgeState.Degraded, BridgeState.Stopped) => true,
+                (BridgeState.Degraded, BridgeState.Error) => true,
+                (BridgeState.Degraded, BridgeState.Disconnected) => true,
 
                 (BridgeState.Error, BridgeState.Connecting) => true,
                 (BridgeState.Error, BridgeState.Stopped) => true,

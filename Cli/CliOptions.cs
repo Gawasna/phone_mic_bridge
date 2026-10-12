@@ -8,6 +8,7 @@ namespace PhoneMicBridge.Cli
         ListDevices,
         TestTone,
         PlayFile,
+        Monitor,
         Help
     }
 
@@ -21,6 +22,7 @@ namespace PhoneMicBridge.Cli
         public float MicGain { get; set; } = 1.0f;
         public bool EnableTone { get; set; }
         public bool EnableMic { get; set; } = true;
+        public bool EnableMonitor { get; set; }
         public string TargetDeviceGuid { get; set; } = Devices.DeviceDiscovery.DEFAULT_TARGET_HFP_GUID;
         public string InputDeviceQuery { get; set; } = string.Empty;
 
@@ -93,6 +95,9 @@ namespace PhoneMicBridge.Cli
                         break;
                     case "--no-mic":
                         options.EnableMic = false;
+                        break;
+                    case "--monitor":
+                        options.EnableMonitor = true;
                         break;
                     case "--target-guid":
                         if (i + 1 < args.Length) options.TargetDeviceGuid = args[++i];
