@@ -44,7 +44,7 @@ namespace PhoneMicBridge.Tests
         {
             // Locate PhoneMicBridge.Gui.dll
             string testDir = AppContext.BaseDirectory;
-            string guiDllPath = Path.GetFullPath(Path.Combine(testDir, @"..\..\..\..\..\Gui\PhoneMicBridge.Gui\bin\Debug\net9.0-windows\PhoneMicBridge.Gui.dll"));
+            string guiDllPath = Path.GetFullPath(Path.Combine(testDir, @"..\..\..\..\..\Gui\PhoneMicBridge.Gui\bin\Debug\net9.0-windows10.0.19041.0\PhoneMicBridge.Gui.dll"));
 
             if (!File.Exists(guiDllPath))
             {

@@ -5,6 +5,7 @@ dist/
 
 # Visual Studio / VS Code
 .vs/
+.kiro/*
 .vscode/
 *.user
 *.suo
@@ -56,3 +57,7 @@ android/.cxx/
 *.aab
 android/.idea/
 android/*.iml
+companion/.gradle/*
+companion/app/build/*
+companion/build/*
+companion/gradle/*

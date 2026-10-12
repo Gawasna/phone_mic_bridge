@@ -246,7 +246,7 @@ namespace PhoneMicBridge.Application
                         Title: "Bluetooth HFP/SCO & Transport Readiness",
                         Status: "Fail",
                         Details: "Bluetooth radio adapter is disabled or unavailable on this host PC.",
-                        RemediationText: "Turn on Bluetooth in Windows Settings (Settings > Bluetooth & devices) or enable the adapter in Device Manager."
+                        RemediationText: "Turn on Bluetooth directly via toolbar button, or Turn on Bluetooth in Windows Settings (Settings > Bluetooth & devices) / Device Manager."
                     );
                 }
 

@@ -5,6 +5,7 @@ namespace PhoneMicBridge.Cli
         Mix,
         ListInputs,
         ListOutputs,
+        ListDevices,
         TestTone,
         PlayFile,
         Help
@@ -21,6 +22,7 @@ namespace PhoneMicBridge.Cli
         public bool EnableTone { get; set; }
         public bool EnableMic { get; set; } = true;
         public string TargetDeviceGuid { get; set; } = Devices.DeviceDiscovery.DEFAULT_TARGET_HFP_GUID;
+        public string InputDeviceQuery { get; set; } = string.Empty;
 
         public static CliOptions Parse(string[] args)
         {
@@ -34,6 +36,10 @@ namespace PhoneMicBridge.Cli
                 string arg = args[i].ToLowerInvariant();
                 switch (arg)
                 {
+                    case "--list-devices":
+                    case "--list":
+                        options.Command = CliCommand.ListDevices;
+                        return options;
                     case "--list-inputs":
                         options.Command = CliCommand.ListInputs;
                         return options;
@@ -46,7 +52,7 @@ namespace PhoneMicBridge.Cli
                         return options;
                     case "--test-tone":
                         options.Command = CliCommand.TestTone;
-                        if (i + 1 < args.Length && double.TryParse(args[i + 1], out double freq))
+                        if (i + 1 < args.Length && double.TryParse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture, out double freq))
                         {
                             options.ToneFrequency = freq;
                             i++;
@@ -58,7 +64,7 @@ namespace PhoneMicBridge.Cli
                         {
                             options.AudioFilePath = args[++i];
                         }
-                        if (i + 1 < args.Length && float.TryParse(args[i + 1], out float fg))
+                        if (i + 1 < args.Length && float.TryParse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture, out float fg))
                         {
                             options.FileGain = fg;
                             i++;
@@ -71,23 +77,31 @@ namespace PhoneMicBridge.Cli
                         if (i + 1 < args.Length) options.AudioFilePath = args[++i];
                         break;
                     case "--file-gain":
-                        if (i + 1 < args.Length && float.TryParse(args[i + 1], out float fgain)) { options.FileGain = fgain; i++; }
+                        if (i + 1 < args.Length && float.TryParse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture, out float fgain)) { options.FileGain = fgain; i++; }
                         break;
                     case "--tone":
                         options.EnableTone = true;
-                        if (i + 1 < args.Length && double.TryParse(args[i + 1], out double tf)) { options.ToneFrequency = tf; i++; }
+                        if (i + 1 < args.Length && double.TryParse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture, out double tf)) { options.ToneFrequency = tf; i++; }
                         break;
                     case "--tone-gain":
-                        if (i + 1 < args.Length && float.TryParse(args[i + 1], out float tgain)) { options.ToneGain = tgain; i++; }
+                        if (i + 1 < args.Length && float.TryParse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture, out float tgain)) { options.ToneGain = tgain; i++; }
                         break;
                     case "--mic-gain":
-                        if (i + 1 < args.Length && float.TryParse(args[i + 1], out float mgain)) { options.MicGain = mgain; i++; }
+                    case "--speaker-gain":
+                    case "--loopback-gain":
+                        if (i + 1 < args.Length && float.TryParse(args[i + 1], System.Globalization.CultureInfo.InvariantCulture, out float mgain)) { options.MicGain = mgain; i++; }
                         break;
                     case "--no-mic":
                         options.EnableMic = false;
                         break;
                     case "--target-guid":
                         if (i + 1 < args.Length) options.TargetDeviceGuid = args[++i];
+                        break;
+                    case "--input":
+                    case "-i":
+                    case "--speaker":
+                    case "--loopback":
+                        if (i + 1 < args.Length) options.InputDeviceQuery = args[++i];
                         break;
                 }
             }

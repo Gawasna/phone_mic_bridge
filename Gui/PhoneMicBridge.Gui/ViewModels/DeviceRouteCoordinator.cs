@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using PhoneMicBridge.Application;
 using PhoneMicBridge.Core;
+using PhoneMicBridge.Devices;
 
 namespace PhoneMicBridge.Gui.ViewModels
 {
@@ -157,10 +158,25 @@ namespace PhoneMicBridge.Gui.ViewModels
         public bool HasBluetoothDevices => _bluetoothDevices.Count > 0;
         public bool IsBluetoothEmpty => _bluetoothDevices.Count == 0;
 
+        private bool _isOperatingBluetoothRadio;
+        public bool IsOperatingBluetoothRadio
+        {
+            get => _isOperatingBluetoothRadio;
+            private set
+            {
+                if (_isOperatingBluetoothRadio != value)
+                {
+                    _isOperatingBluetoothRadio = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
         public ICommand SetRouteInCommand { get; }
         public ICommand SetRouteOutCommand { get; }
         public ICommand ToggleRouteModeCommand { get; }
         public ICommand OpenBluetoothSettingsCommand { get; }
+        public ICommand TurnOnBluetoothCommand { get; }
 
         public DeviceRouteCoordinator(IBridgeApplicationService service)
         {
@@ -170,6 +186,71 @@ namespace PhoneMicBridge.Gui.ViewModels
             SetRouteOutCommand = new RelayCommand(() => SetRouteMode(BridgeRouteMode.Out));
             ToggleRouteModeCommand = new RelayCommand(() => SetRouteMode(_routeMode == BridgeRouteMode.In ? BridgeRouteMode.Out : BridgeRouteMode.In));
             OpenBluetoothSettingsCommand = new RelayCommand(() => _service.OpenBluetoothSettings());
+            TurnOnBluetoothCommand = new RelayCommand(async () => await TurnOnBluetoothAsync(), () => !IsOperatingBluetoothRadio);
+            
+            _service.RadioStateChanged += OnRadioStateChanged;
+        }
+
+        private void OnRadioStateChanged(object? sender, bool isEnabled)
+        {
+            var app = System.Windows.Application.Current;
+            if (app?.Dispatcher != null && !app.Dispatcher.CheckAccess())
+            {
+                app.Dispatcher.InvokeAsync(() => HandleRadioState(isEnabled));
+            }
+            else
+            {
+                HandleRadioState(isEnabled);
+            }
+        }
+
+        private void HandleRadioState(bool isEnabled)
+        {
+            IsBluetoothEnabled = isEnabled;
+            if (isEnabled)
+            {
+                _ = LoadDevicesAsync();
+            }
+            else
+            {
+                _bluetoothDevices.Clear();
+                _selectedBluetoothDevice = null;
+                OnPropertyChanged(nameof(SelectedBluetoothDeviceId));
+                OnPropertyChanged(nameof(HasBluetoothDevices));
+                OnPropertyChanged(nameof(IsBluetoothEmpty));
+            }
+        }
+
+        public async Task<BluetoothRadioStateResult> TurnOnBluetoothAsync()
+        {
+            if (IsOperatingBluetoothRadio)
+            {
+                return BluetoothRadioStateResult.Failed;
+            }
+
+            try
+            {
+                IsOperatingBluetoothRadio = true;
+                System.Windows.Input.CommandManager.InvalidateRequerySuggested();
+
+                var result = await _service.TurnOnBluetoothRadioAsync().ConfigureAwait(true);
+                if (result == BluetoothRadioStateResult.Success || result == BluetoothRadioStateResult.AlreadyInDesiredState)
+                {
+                    // Allow brief interval for Windows PnP audio endpoint enumeration to settle
+                    await Task.Delay(300).ConfigureAwait(true);
+                    await LoadDevicesAsync().ConfigureAwait(true);
+                }
+                else if (result == BluetoothRadioStateResult.DeniedByUser || result == BluetoothRadioStateResult.DeniedBySystem)
+                {
+                    _service.OpenBluetoothSettings();
+                }
+                return result;
+            }
+            finally
+            {
+                IsOperatingBluetoothRadio = false;
+                System.Windows.Input.CommandManager.InvalidateRequerySuggested();
+            }
         }
 
         public void SetRouteMode(BridgeRouteMode mode)
@@ -313,6 +394,7 @@ namespace PhoneMicBridge.Gui.ViewModels
         {
             if (_isDisposed) return;
             _isDisposed = true;
+            _service.RadioStateChanged -= OnRadioStateChanged;
             _deviceLoadLock.Dispose();
         }
     }

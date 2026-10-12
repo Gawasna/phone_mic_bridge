@@ -12,15 +12,15 @@ namespace PhoneMicBridge.Devices
     /// </summary>
     public static class BluetoothPresentationFormatter
     {
-        public const string StatusConnectedOnline = "Connected (Online)";
-        public const string StatusOfflineSettings = "Offline (Connect in Settings)";
+        public const string StatusConnectedOnline = "Connected";
+        public const string StatusOfflineSettings = "Connect in Settings";
 
         public const string BridgeStatusReady = "READY TO BRIDGE";
-        public const string BridgeStatusIncompatibleA2dp = "Incompatible (A2DP Only)";
-        public const string BridgeStatusAudioInactive = "Audio Inactive (Enable in Settings)";
-        public const string BridgeStatusPhoneTargetOffline = "HFP Phone Target (Offline)";
+        public const string BridgeStatusIncompatibleA2dp = "Incompatible";
+        public const string BridgeStatusAudioInactive = "Audio Inactive";
+        public const string BridgeStatusPhoneTargetOffline = "HFP Phone";
         public const string BridgeStatusHfpConnected = "HFP Connected";
-        public const string BridgeStatusHfpOffline = "HFP Supported (Offline)";
+        public const string BridgeStatusHfpOffline = "HFP Supported";
 
         public static string FormatConnectionStatus(bool isConnected) =>
             isConnected ? StatusConnectedOnline : StatusOfflineSettings;
@@ -73,3 +73,4 @@ namespace PhoneMicBridge.Devices
         }
     }
 }
+

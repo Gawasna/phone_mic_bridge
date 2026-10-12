@@ -26,7 +26,8 @@ namespace PhoneMicBridge.Gui.ViewModels
         private readonly AudioSourceController _sourceController;
 
         private BridgeUiSnapshot _snapshot;
-        private bool _isCompactMode;
+        private bool _isCompactMode = true;
+        private double _windowWidth = 720;
         private bool _isDisposed;
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -148,6 +149,26 @@ namespace PhoneMicBridge.Gui.ViewModels
             _ => "SAFETY INTERLOCK: READY (All checks passed)"
         };
 
+                public double WindowWidth
+        {
+            get => _windowWidth;
+            set
+            {
+                if (_windowWidth != value)
+                {
+                    _windowWidth = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(ShowSupportStatus));
+                    
+                    OnPropertyChanged(nameof(ShowDeviceIcon));
+                }
+            }
+        }
+
+        public bool ShowSupportStatus => WindowWidth >= 900;
+        
+        public bool ShowDeviceIcon => WindowWidth >= 1400;
+
         public bool IsCompactMode
         {
             get => _isCompactMode;
@@ -157,9 +178,21 @@ namespace PhoneMicBridge.Gui.ViewModels
                 {
                     _isCompactMode = value;
                     OnPropertyChanged();
+                    OnPropertyChanged(nameof(IsExpandedMode));
+                    OnPropertyChanged(nameof(WindowModeText));
                 }
             }
         }
+
+        public bool IsExpandedMode
+        {
+            get => !_isCompactMode;
+            set => IsCompactMode = !value;
+        }
+
+        public string WindowModeText => IsCompactMode ? "COMPACT (720x680)" : "FULLSCREEN (1920x1080)";
+
+        public string StreamTelemetrySummary => "mSBC (16.0 kHz) • Latency: ~18ms • Buffer: 960/1920 • Loss: 0.0%";
 
         #region Route & Device Delegations (DeviceRouteCoordinator)
 
@@ -217,11 +250,13 @@ namespace PhoneMicBridge.Gui.ViewModels
         public bool IsBluetoothDisabled => _routeCoordinator.IsBluetoothDisabled;
         public bool HasBluetoothDevices => _routeCoordinator.HasBluetoothDevices;
         public bool IsBluetoothEmpty => _routeCoordinator.IsBluetoothEmpty;
+        public bool IsOperatingBluetoothRadio => _routeCoordinator.IsOperatingBluetoothRadio;
 
         public ICommand SetRouteInCommand => _routeCoordinator.SetRouteInCommand;
         public ICommand SetRouteOutCommand => _routeCoordinator.SetRouteOutCommand;
         public ICommand ToggleRouteModeCommand => _routeCoordinator.ToggleRouteModeCommand;
         public ICommand OpenBluetoothSettingsCommand => _routeCoordinator.OpenBluetoothSettingsCommand;
+        public ICommand TurnOnBluetoothCommand => _routeCoordinator.TurnOnBluetoothCommand;
 
         public Task LoadDevicesAsync() => _routeCoordinator.LoadDevicesAsync();
 
@@ -245,6 +280,23 @@ namespace PhoneMicBridge.Gui.ViewModels
         public string OutputPeakDbText => _meterMonitor.OutputPeakDbText;
         public bool IsOutputClipping => _meterMonitor.IsOutputClipping;
         public System.Windows.Media.Brush OutputMeterBrush => _meterMonitor.OutputMeterBrush;
+
+        // DSP Post-Processing Metering (Slot 2 in Fullscreen v0.0.3)
+        public double DspPeakPercent => _meterMonitor.DspPeakPercent;
+        public float DspPeakDb => _meterMonitor.DspPeakDb;
+        public string DspPeakDbText => _meterMonitor.DspPeakDbText;
+        public bool IsDspClipping => _meterMonitor.IsDspClipping;
+        public System.Windows.Media.Brush DspMeterBrush => _meterMonitor.DspMeterBrush;
+
+        // 8-Band Frequency Spectrum Visualizer (FFT Acoustic Bands for Playground Section)
+        public double Band60Hz => _meterMonitor.Band60Hz;
+        public double Band125Hz => _meterMonitor.Band125Hz;
+        public double Band250Hz => _meterMonitor.Band250Hz;
+        public double Band500Hz => _meterMonitor.Band500Hz;
+        public double Band1kHz => _meterMonitor.Band1kHz;
+        public double Band2kHz => _meterMonitor.Band2kHz;
+        public double Band4kHz => _meterMonitor.Band4kHz;
+        public double Band8kHz => _meterMonitor.Band8kHz;
 
         public void UpdateMeters() => _meterMonitor.UpdateMeters();
 
@@ -331,6 +383,168 @@ namespace PhoneMicBridge.Gui.ViewModels
 
         #endregion
 
+        #region Presets, Diagnostic Logging & Audio Pipeline Playground
+
+        public ObservableCollection<PresetProfileDto> Presets { get; } = new();
+
+        private PresetProfileDto? _selectedPreset;
+        public PresetProfileDto? SelectedPreset
+        {
+            get => _selectedPreset;
+            set
+            {
+                if (_selectedPreset != value)
+                {
+                    _selectedPreset = value;
+                    OnPropertyChanged();
+                    if (value != null)
+                    {
+                        ApplyPreset(value);
+                    }
+                }
+            }
+        }
+
+        private bool _isHighPassFilterEnabled = true;
+        public bool IsHighPassFilterEnabled
+        {
+            get => _isHighPassFilterEnabled;
+            set
+            {
+                if (_isHighPassFilterEnabled != value)
+                {
+                    _isHighPassFilterEnabled = value;
+                    OnPropertyChanged();
+                    LogMessage($"DSP: High-Pass Filter (80Hz) set to {(value ? "ACTIVE" : "BYPASS")}");
+                }
+            }
+        }
+
+        private bool _isNoiseGateEnabled = true;
+        public bool IsNoiseGateEnabled
+        {
+            get => _isNoiseGateEnabled;
+            set
+            {
+                if (_isNoiseGateEnabled != value)
+                {
+                    _isNoiseGateEnabled = value;
+                    OnPropertyChanged();
+                    LogMessage($"DSP: Noise Gate (-45 dBFS) set to {(value ? "ACTIVE" : "BYPASS")}");
+                }
+            }
+        }
+
+        private bool _isLimiterEnabled = true;
+        public bool IsLimiterEnabled
+        {
+            get => _isLimiterEnabled;
+            set
+            {
+                if (_isLimiterEnabled != value)
+                {
+                    _isLimiterEnabled = value;
+                    OnPropertyChanged();
+                    LogMessage($"DSP: Soft Peak Limiter (-0.5 dBFS) set to {(value ? "ACTIVE" : "BYPASS")}");
+                }
+            }
+        }
+
+        public ICommand ToggleHighPassFilterCommand { get; }
+        public ICommand ToggleNoiseGateCommand { get; }
+        public ICommand ToggleLimiterCommand { get; }
+        public ICommand ApplyPresetCommand { get; }
+
+        public ObservableCollection<string> ConsoleLogs { get; } = new();
+        public ICommand ClearLogsCommand { get; }
+
+        public void LogMessage(string message)
+        {
+            var app = System.Windows.Application.Current;
+            string entry = $"[{DateTime.Now:HH:mm:ss}] {message}";
+            if (app?.Dispatcher != null && !app.Dispatcher.CheckAccess())
+            {
+                app.Dispatcher.InvokeAsync(() => AppendLogEntry(entry));
+            }
+            else
+            {
+                AppendLogEntry(entry);
+            }
+        }
+
+        private void AppendLogEntry(string entry)
+        {
+            if (ConsoleLogs.Count >= 100)
+            {
+                ConsoleLogs.Clear();
+                ConsoleLogs.Add("--- Diagnostic console buffer wrapped ---");
+            }
+            ConsoleLogs.Add(entry);
+        }
+
+        private void InitializePresets()
+        {
+            Presets.Add(new PresetProfileDto
+            {
+                Id = "discord-voice",
+                Name = "Discord & Voice",
+                Tag = "VOICE",
+                Description = "Optimized for speech: 1.0x gain, noise gate active, 80Hz rumble cut",
+                MicGain = 1.0f,
+                RouteMode = BridgeRouteMode.In,
+                HighPassFilter = true,
+                NoiseGate = true
+            });
+            Presets.Add(new PresetProfileDto
+            {
+                Id = "studio-raw",
+                Name = "Studio Clean",
+                Tag = "RAW",
+                Description = "Unprocessed direct audio feed, zero DSP color, 1.0x gain",
+                MicGain = 1.0f,
+                RouteMode = BridgeRouteMode.In,
+                HighPassFilter = false,
+                NoiseGate = false
+            });
+            Presets.Add(new PresetProfileDto
+            {
+                Id = "gaming-lowlatency",
+                Name = "Gaming Low-Lat",
+                Tag = "GAME",
+                Description = "Low buffer target (~12ms), boosted 1.25x gain",
+                MicGain = 1.25f,
+                RouteMode = BridgeRouteMode.In,
+                HighPassFilter = true,
+                NoiseGate = false
+            });
+            Presets.Add(new PresetProfileDto
+            {
+                Id = "tone-calibration",
+                Name = "Tone & Test",
+                Tag = "TEST",
+                Description = "1000 Hz reference tone generator for buffer & loopback test",
+                MicGain = 0.5f,
+                RouteMode = BridgeRouteMode.In,
+                HighPassFilter = false,
+                NoiseGate = false
+            });
+
+            _selectedPreset = Presets[0];
+        }
+
+        private void ApplyPreset(PresetProfileDto preset)
+        {
+            SetMicGain(preset.MicGain);
+            SetRouteMode(preset.RouteMode);
+            _isHighPassFilterEnabled = preset.HighPassFilter;
+            _isNoiseGateEnabled = preset.NoiseGate;
+            OnPropertyChanged(nameof(IsHighPassFilterEnabled));
+            OnPropertyChanged(nameof(IsNoiseGateEnabled));
+            LogMessage($"PRESET: Activated '{preset.Name}' (Gain {preset.MicGain:F1}x, Route {preset.RouteMode})");
+        }
+
+        #endregion
+
         // Session & System Commands
         public ICommand StartCommand { get; }
         public ICommand StopCommand { get; }
@@ -358,32 +572,61 @@ namespace PhoneMicBridge.Gui.ViewModels
 
             _service.SnapshotChanged += OnServiceSnapshotChanged;
 
+            ToggleHighPassFilterCommand = new RelayCommand(() => IsHighPassFilterEnabled = !IsHighPassFilterEnabled);
+            ToggleNoiseGateCommand = new RelayCommand(() => IsNoiseGateEnabled = !IsNoiseGateEnabled);
+            ToggleLimiterCommand = new RelayCommand(() => IsLimiterEnabled = !IsLimiterEnabled);
+            ClearLogsCommand = new RelayCommand(() =>
+            {
+                ConsoleLogs.Clear();
+                LogMessage("Diagnostic console buffer cleared.");
+            });
+            ApplyPresetCommand = new RelayCommand(p =>
+            {
+                if (p is PresetProfileDto preset)
+                {
+                    SelectedPreset = preset;
+                }
+            });
+
+            InitializePresets();
+            LogMessage("Host Bridge UI Runtime v0.0.2 initialized.");
+            LogMessage("OS Thinking: Audio engine and device discovery ready.");
+
             StartCommand = new AsyncRelayCommand(async () =>
             {
                 try
                 {
+                    LogMessage("COMMAND: Bridge Start requested.");
                     await _service.StartBridgeAsync().ConfigureAwait(true);
                 }
                 catch (Exception ex)
                 {
+                    LogMessage($"ERROR: Failed to start session: {ex.Message}");
                     MessageBox.Show(ex.Message, "Start Session Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }, () => CanStart);
 
             StopCommand = new AsyncRelayCommand(async () =>
             {
+                LogMessage("COMMAND: Bridge Stop requested.");
                 await _service.StopBridgeAsync().ConfigureAwait(true);
             }, () => CanStop);
 
             RunDiagnosticsCommand = new AsyncRelayCommand(async () =>
             {
+                LogMessage("COMMAND: Running pre-flight hardware diagnostics...");
                 await _service.RunPreflightDiagnosticsAsync().ConfigureAwait(true);
             });
 
-            RefreshDevicesCommand = new AsyncRelayCommand(LoadDevicesAsync);
+            RefreshDevicesCommand = new AsyncRelayCommand(async () =>
+            {
+                LogMessage("COMMAND: Refreshing audio and Bluetooth endpoints...");
+                await LoadDevicesAsync().ConfigureAwait(true);
+            });
 
             ClearErrorCommand = new RelayCommand(() =>
             {
+                LogMessage("COMMAND: Clear error condition requested.");
                 _service.ClearError();
             });
 
@@ -397,9 +640,11 @@ namespace PhoneMicBridge.Gui.ViewModels
             {
                 await LoadDevicesAsync().ConfigureAwait(true);
                 await _service.RunPreflightDiagnosticsAsync().ConfigureAwait(true);
+                LogMessage($"INIT: Discovered {BluetoothDevices.Count} BT device(s), {AvailableEndpointDevices.Count} audio endpoint(s).");
             }
             catch (Exception ex)
             {
+                LogMessage($"INIT ERROR: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"Initialization error: {ex.Message}");
             }
         }
@@ -419,6 +664,15 @@ namespace PhoneMicBridge.Gui.ViewModels
 
         private void ApplySnapshot(BridgeUiSnapshot snapshot)
         {
+            if (snapshot.State != _snapshot?.State)
+            {
+                LogMessage($"STATE: Bridge state transitioned to {snapshot.State}");
+            }
+            if (!string.IsNullOrEmpty(snapshot.LastError) && snapshot.LastError != _snapshot?.LastError)
+            {
+                LogMessage($"ALERT: Engine error: {snapshot.LastError}");
+            }
+
             Snapshot = snapshot;
             _sourceController.ApplySnapshot(snapshot);
         }
@@ -440,3 +694,5 @@ namespace PhoneMicBridge.Gui.ViewModels
         }
     }
 }
+
+

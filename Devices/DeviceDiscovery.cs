@@ -102,6 +102,90 @@ namespace PhoneMicBridge.Devices
             }
         }
 
+        public static MMDevice FindCaptureOrLoopbackDevice(string? query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return GetDefaultCaptureDevice();
+            }
+
+            var enumerator = new MMDeviceEnumerator();
+
+            // 1. Exact match by ID in All active devices
+            try
+            {
+                var exact = enumerator.GetDevice(query);
+                if (exact != null && exact.State == DeviceState.Active)
+                    return exact;
+            }
+            catch { }
+
+            // 2. Search Render devices for speaker loopback (e.g. "FxSound", "Realtek")
+            var renderDevices = enumerator.EnumerateAudioEndPoints(DataFlow.Render, DeviceState.Active);
+            foreach (var d in renderDevices)
+            {
+                if (d.FriendlyName.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                    d.ID.Contains(query, StringComparison.OrdinalIgnoreCase))
+                {
+                    return d;
+                }
+            }
+
+            // 3. Search Capture devices for microphone
+            var captureDevices = enumerator.EnumerateAudioEndPoints(DataFlow.Capture, DeviceState.Active);
+            foreach (var d in captureDevices)
+            {
+                if (d.FriendlyName.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                    d.ID.Contains(query, StringComparison.OrdinalIgnoreCase))
+                {
+                    return d;
+                }
+            }
+
+            // Fallback: Default capture device
+            return GetDefaultCaptureDevice();
+        }
+
+        public static MMDevice? FindMatchingHfpCaptureDevice(MMDevice renderDevice)
+        {
+            if (renderDevice == null) return null;
+
+            var enumerator = new MMDeviceEnumerator();
+            var captureDevices = enumerator.EnumerateAudioEndPoints(DataFlow.Capture, DeviceState.Active);
+
+            string renderName = renderDevice.FriendlyName;
+            string coreName = renderName;
+            int openParen = renderName.IndexOf('(');
+            int closeParen = renderName.LastIndexOf(')');
+            if (openParen >= 0 && closeParen > openParen)
+            {
+                coreName = renderName.Substring(openParen + 1, closeParen - openParen - 1).Trim();
+            }
+
+            // Priority 1: Active capture device matching core name (e.g. "Redmi Note 13 5G Hands-Free HF Audio")
+            foreach (var d in captureDevices)
+            {
+                if (d.FriendlyName.Contains(coreName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return d;
+                }
+            }
+
+            // Priority 2: Active capture device containing "Hands-Free" or "Handsfree"
+            foreach (var d in captureDevices)
+            {
+                string name = d.FriendlyName;
+                if (name.Contains("Hands-Free", StringComparison.OrdinalIgnoreCase) ||
+                    name.Contains("Handsfree", StringComparison.OrdinalIgnoreCase) ||
+                    name.Contains("bthhfaud", StringComparison.OrdinalIgnoreCase))
+                {
+                    return d;
+                }
+            }
+
+            return null;
+        }
+
         private static bool IsMatchingHfpDevice(MMDevice device, string targetGuid)
         {
             if (!string.IsNullOrWhiteSpace(targetGuid) && device.ID.Contains(targetGuid, StringComparison.OrdinalIgnoreCase))

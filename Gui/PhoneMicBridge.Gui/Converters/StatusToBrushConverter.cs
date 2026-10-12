@@ -36,10 +36,10 @@ namespace PhoneMicBridge.Gui.Converters
 
     public class StatusToBackgroundConverter : IValueConverter
     {
-        private static readonly SolidColorBrush PassBrush = new(Color.FromRgb(0xDC, 0xFC, 0xE7));
-        private static readonly SolidColorBrush FailBrush = new(Color.FromRgb(0xFE, 0xE2, 0xE2));
-        private static readonly SolidColorBrush UnknownBrush = new(Color.FromRgb(0xFE, 0xF3, 0xC7));
-        private static readonly SolidColorBrush NeutralBrush = new(Color.FromRgb(0xF3, 0xF4, 0xF6));
+        private static readonly SolidColorBrush PassBrush = new(Color.FromRgb(0xDC, 0xFC, 0xE7)); // Green-100
+        private static readonly SolidColorBrush FailBrush = new(Color.FromRgb(0xFE, 0xE2, 0xE2)); // Red-100
+        private static readonly SolidColorBrush UnknownBrush = new(Color.FromRgb(0xFE, 0xF3, 0xC7)); // Amber-100
+        private static readonly SolidColorBrush NeutralBrush = new(Color.FromRgb(0xF3, 0xF4, 0xF6)); // Gray-100
 
         public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
@@ -54,10 +54,10 @@ namespace PhoneMicBridge.Gui.Converters
 
     public class StatusToForegroundConverter : IValueConverter
     {
-        private static readonly SolidColorBrush PassBrush = new(Color.FromRgb(0x15, 0x80, 0x3D));
-        private static readonly SolidColorBrush FailBrush = new(Color.FromRgb(0xB9, 0x1C, 0x1C));
-        private static readonly SolidColorBrush UnknownBrush = new(Color.FromRgb(0xB4, 0x53, 0x09));
-        private static readonly SolidColorBrush NeutralBrush = new(Color.FromRgb(0x37, 0x41, 0x51));
+        private static readonly SolidColorBrush PassBrush = new(Color.FromRgb(0x15, 0x80, 0x3D)); // Green-700
+        private static readonly SolidColorBrush FailBrush = new(Color.FromRgb(0xB9, 0x1C, 0x1C)); // Red-700
+        private static readonly SolidColorBrush UnknownBrush = new(Color.FromRgb(0xB4, 0x53, 0x09)); // Amber-700
+        private static readonly SolidColorBrush NeutralBrush = new(Color.FromRgb(0x37, 0x41, 0x51)); // Gray-700
 
         public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {
@@ -72,10 +72,10 @@ namespace PhoneMicBridge.Gui.Converters
 
     public class StatusToBorderConverter : IValueConverter
     {
-        private static readonly SolidColorBrush PassBrush = new(Color.FromRgb(0x86, 0xEF, 0xAC));
-        private static readonly SolidColorBrush FailBrush = new(Color.FromRgb(0xFC, 0xA5, 0xA5));
-        private static readonly SolidColorBrush UnknownBrush = new(Color.FromRgb(0xFD, 0xE6, 0x8A));
-        private static readonly SolidColorBrush NeutralBrush = new(Color.FromRgb(0xD1, 0xD5, 0xDB));
+        private static readonly SolidColorBrush PassBrush = new(Color.FromRgb(0x86, 0xEF, 0xAC)); // Green-300
+        private static readonly SolidColorBrush FailBrush = new(Color.FromRgb(0xFC, 0xA5, 0xA5)); // Red-300
+        private static readonly SolidColorBrush UnknownBrush = new(Color.FromRgb(0xFD, 0xE6, 0x8A)); // Amber-300
+        private static readonly SolidColorBrush NeutralBrush = new(Color.FromRgb(0xD1, 0xD5, 0xDB)); // Gray-300
 
         public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         {

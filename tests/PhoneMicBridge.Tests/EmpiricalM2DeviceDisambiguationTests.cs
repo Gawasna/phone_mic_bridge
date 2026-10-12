@@ -29,6 +29,9 @@ namespace PhoneMicBridge.Tests
         {
             public BridgeUiSnapshot CurrentSnapshot { get; set; } = BridgeUiSnapshot.Initial();
             public event EventHandler<BridgeUiSnapshot>? SnapshotChanged;
+#pragma warning disable CS0067
+        public event EventHandler<bool>? RadioStateChanged;
+#pragma warning restore CS0067
 
             public List<AudioDeviceDto> CaptureDevicesList { get; set; } = new();
             public List<AudioDeviceDto> RenderDevicesList { get; set; } = new();
@@ -96,7 +99,7 @@ namespace PhoneMicBridge.Tests
         private static object CreateMainViewModel(IBridgeApplicationService service)
         {
             string testDir = AppContext.BaseDirectory;
-            string guiDllPath = Path.GetFullPath(Path.Combine(testDir, @"..\..\..\..\..\Gui\PhoneMicBridge.Gui\bin\Debug\net9.0-windows\PhoneMicBridge.Gui.dll"));
+            string guiDllPath = Path.GetFullPath(Path.Combine(testDir, @"..\..\..\..\..\Gui\PhoneMicBridge.Gui\bin\Debug\net9.0-windows10.0.19041.0\PhoneMicBridge.Gui.dll"));
 
             if (!File.Exists(guiDllPath))
             {
@@ -589,3 +592,4 @@ namespace PhoneMicBridge.Tests
         #endregion
     }
 }
+

@@ -34,7 +34,10 @@ namespace PhoneMicBridge.Audio
             _targetSampleRate = targetSampleRate;
             _targetChannels = targetChannels;
             var format = WaveFormat.CreateIeeeFloatWaveFormat(targetSampleRate, targetChannels);
-            _mixer = new MixingSampleProvider(format);
+            _mixer = new MixingSampleProvider(format)
+            {
+                ReadFully = true
+            };
         }
 
         public void AttachMicSource(ISampleProvider rawMicProvider, bool initialEnabled = true)

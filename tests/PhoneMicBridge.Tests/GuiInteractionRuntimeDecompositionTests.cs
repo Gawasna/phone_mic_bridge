@@ -26,6 +26,9 @@ namespace PhoneMicBridge.Tests
             public BridgeUiSnapshot CurrentSnapshot { get; set; } = BridgeUiSnapshot.Initial();
 #pragma warning disable CS0067
             public event EventHandler<BridgeUiSnapshot>? SnapshotChanged;
+#pragma warning disable CS0067
+        public event EventHandler<bool>? RadioStateChanged;
+#pragma warning restore CS0067
 #pragma warning restore CS0067
 
             public List<AudioDeviceDto> CaptureList { get; set; } = new()
@@ -85,7 +88,7 @@ namespace PhoneMicBridge.Tests
         private static Assembly GetGuiAssembly()
         {
             string testDir = AppContext.BaseDirectory;
-            string guiDllPath = Path.GetFullPath(Path.Combine(testDir, @"..\..\..\..\..\Gui\PhoneMicBridge.Gui\bin\Debug\net9.0-windows\PhoneMicBridge.Gui.dll"));
+            string guiDllPath = Path.GetFullPath(Path.Combine(testDir, @"..\..\..\..\..\Gui\PhoneMicBridge.Gui\bin\Debug\net9.0-windows10.0.19041.0\PhoneMicBridge.Gui.dll"));
 
             if (!File.Exists(guiDllPath))
             {
@@ -249,5 +252,145 @@ namespace PhoneMicBridge.Tests
             Assert.NotNull(meterMonitor);
             Assert.NotNull(sourceCtrl);
         }
+
+        [Fact]
+        public void MainViewModel_Presets_InitializedAndAppliedCorrectly()
+        {
+            var service = new StubBridgeService();
+            var vm = CreateInstance("PhoneMicBridge.Gui.ViewModels.MainViewModel", service);
+
+            var presets = GetProp<IEnumerable>(vm, "Presets");
+            Assert.NotNull(presets);
+
+            int count = 0;
+            object? studioRaw = null;
+            foreach (var p in presets)
+            {
+                count++;
+                string id = (string)p.GetType().GetProperty("Id")!.GetValue(p)!;
+                if (id == "studio-raw") studioRaw = p;
+            }
+            Assert.True(count >= 4, "Must have at least 4 presets defined for wireframe v0.0.2");
+            Assert.NotNull(studioRaw);
+
+            // Apply preset
+            var applyCmd = GetProp<System.Windows.Input.ICommand>(vm, "ApplyPresetCommand");
+            Assert.NotNull(applyCmd);
+            applyCmd.Execute(studioRaw);
+
+            var selectedPreset = GetProp<object>(vm, "SelectedPreset");
+            Assert.Equal(studioRaw, selectedPreset);
+            Assert.False(GetProp<bool>(vm, "IsHighPassFilterEnabled"));
+            Assert.False(GetProp<bool>(vm, "IsNoiseGateEnabled"));
+        }
+
+        [Fact]
+        public void MainViewModel_DiagnosticLogs_AppendsAndClears()
+        {
+            var service = new StubBridgeService();
+            var vm = CreateInstance("PhoneMicBridge.Gui.ViewModels.MainViewModel", service);
+
+            var logs = GetProp<IList>(vm, "ConsoleLogs");
+            Assert.NotNull(logs);
+            Assert.True(logs.Count > 0, "ConsoleLogs should contain initialization messages");
+
+            // Log custom message
+            var logMethod = vm.GetType().GetMethod("LogMessage", new[] { typeof(string) });
+            Assert.NotNull(logMethod);
+            logMethod.Invoke(vm, new object[] { "Test Diagnostic Message" });
+
+            bool found = false;
+            foreach (var item in logs)
+            {
+                if (item?.ToString()?.Contains("Test Diagnostic Message") == true)
+                {
+                    found = true;
+                    break;
+                }
+            }
+            Assert.True(found, "LogMessage should be recorded in ConsoleLogs");
+
+            // Clear logs
+            var clearCmd = GetProp<System.Windows.Input.ICommand>(vm, "ClearLogsCommand");
+            Assert.NotNull(clearCmd);
+            clearCmd.Execute(null);
+
+            // After clear, only the "buffer cleared" message should remain
+            Assert.True(logs.Count >= 1);
+            Assert.Contains("cleared", logs[logs.Count - 1]?.ToString() ?? string.Empty);
+        }
+
+        [Fact]
+        public void MainViewModel_DspToggles_OperateCorrectly()
+        {
+            var service = new StubBridgeService();
+            var vm = CreateInstance("PhoneMicBridge.Gui.ViewModels.MainViewModel", service);
+
+            Assert.True(GetProp<bool>(vm, "IsHighPassFilterEnabled"));
+            var toggleHpf = GetProp<System.Windows.Input.ICommand>(vm, "ToggleHighPassFilterCommand");
+            toggleHpf.Execute(null);
+            Assert.False(GetProp<bool>(vm, "IsHighPassFilterEnabled"));
+
+            Assert.True(GetProp<bool>(vm, "IsNoiseGateEnabled"));
+            var toggleGate = GetProp<System.Windows.Input.ICommand>(vm, "ToggleNoiseGateCommand");
+            toggleGate.Execute(null);
+            Assert.False(GetProp<bool>(vm, "IsNoiseGateEnabled"));
+
+            Assert.True(GetProp<bool>(vm, "IsLimiterEnabled"));
+            var toggleLimiter = GetProp<System.Windows.Input.ICommand>(vm, "ToggleLimiterCommand");
+            toggleLimiter.Execute(null);
+            Assert.False(GetProp<bool>(vm, "IsLimiterEnabled"));
+        }
+
+        [Fact]
+        public void MainViewModel_WindowModeAdaptation_UpdatesExpandedAndModeText()
+        {
+            var service = new StubBridgeService();
+            var vm = CreateInstance("PhoneMicBridge.Gui.ViewModels.MainViewModel", service);
+
+            // Default is Compact mode
+            Assert.True(GetProp<bool>(vm, "IsCompactMode"));
+            Assert.False(GetProp<bool>(vm, "IsExpandedMode"));
+            Assert.Equal("COMPACT (720x680)", GetProp<string>(vm, "WindowModeText"));
+
+            // Switch to Expanded mode
+            SetProp(vm, "IsCompactMode", false);
+            Assert.False(GetProp<bool>(vm, "IsCompactMode"));
+            Assert.True(GetProp<bool>(vm, "IsExpandedMode"));
+            Assert.Equal("FULLSCREEN (1920x1080)", GetProp<string>(vm, "WindowModeText"));
+
+            // Verify telemetry summary is non-empty
+            var telemetry = GetProp<string>(vm, "StreamTelemetrySummary");
+            Assert.False(string.IsNullOrWhiteSpace(telemetry));
+            Assert.Contains("mSBC (16.0 kHz)", telemetry);
+        }
+
+        [Fact]
+        public void AudioMeterMonitor_DspAndSpectrum_PropertiesExposeValidValues()
+        {
+            var service = new StubBridgeService();
+            var vm = CreateInstance("PhoneMicBridge.Gui.ViewModels.MainViewModel", service);
+
+            // Verify DSP meter default state
+            var dspPercent = GetProp<double>(vm, "DspPeakPercent");
+            var dspDbText = GetProp<string>(vm, "DspPeakDbText");
+            var isDspClipping = GetProp<bool>(vm, "IsDspClipping");
+
+            Assert.True(dspPercent >= 0.0);
+            Assert.False(string.IsNullOrWhiteSpace(dspDbText));
+            Assert.False(isDspClipping);
+
+            // Verify 8-band FFT spectrum initial values
+            Assert.True(GetProp<double>(vm, "Band60Hz") >= 0.0);
+            Assert.True(GetProp<double>(vm, "Band125Hz") >= 0.0);
+            Assert.True(GetProp<double>(vm, "Band250Hz") >= 0.0);
+            Assert.True(GetProp<double>(vm, "Band500Hz") >= 0.0);
+            Assert.True(GetProp<double>(vm, "Band1kHz") >= 0.0);
+            Assert.True(GetProp<double>(vm, "Band2kHz") >= 0.0);
+            Assert.True(GetProp<double>(vm, "Band4kHz") >= 0.0);
+            Assert.True(GetProp<double>(vm, "Band8kHz") >= 0.0);
+        }
     }
 }
+
+

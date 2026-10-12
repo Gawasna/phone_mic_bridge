@@ -14,6 +14,7 @@ namespace PhoneMicBridge.Application
     {
         BridgeUiSnapshot CurrentSnapshot { get; }
         event EventHandler<BridgeUiSnapshot>? SnapshotChanged;
+        event EventHandler<bool>? RadioStateChanged;
         AudioMeterValues GetCurrentMeterValues();
 
         Task<BridgeUiSnapshot> RunPreflightDiagnosticsAsync(CancellationToken cancellationToken = default);
@@ -21,7 +22,10 @@ namespace PhoneMicBridge.Application
         Task<IReadOnlyList<AudioDeviceDto>> GetRenderDevicesAsync();
         Task<IReadOnlyList<BluetoothDeviceDto>> GetBluetoothDevicesAsync() => Task.FromResult<IReadOnlyList<BluetoothDeviceDto>>(Array.Empty<BluetoothDeviceDto>());
         bool IsBluetoothRadioEnabled() => true;
+        Task<PhoneMicBridge.Devices.BluetoothRadioStateResult> TurnOnBluetoothRadioAsync() => Task.FromResult(PhoneMicBridge.Devices.BluetoothRadioStateResult.Success);
+        Task<PhoneMicBridge.Devices.BluetoothRadioStateResult> SetBluetoothRadioStateAsync(bool enable) => Task.FromResult(PhoneMicBridge.Devices.BluetoothRadioStateResult.Success);
         void OpenBluetoothSettings() { }
+        bool OpenWindowsPrivacySettings() => false;
         Task SelectDevicesAsync(string? captureDeviceId, string? renderDeviceId);
 
         Task StartBridgeAsync(CancellationToken cancellationToken = default);
