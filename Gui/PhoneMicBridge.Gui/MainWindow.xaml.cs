@@ -34,57 +34,31 @@ namespace PhoneMicBridge.Gui
     /// </summary>
     public partial class MainWindow : Window
     {
-        private WinForms.NotifyIcon? _notifyIcon;
-        private bool _isExplicitExit;
+        private TrayIconCoordinator? _trayCoordinator;
 
         public MainWindow()
         {
             InitializeComponent();
-            InitializeTrayIcon();
-        }
-
-        private void InitializeTrayIcon()
-        {
-            var components = new System.ComponentModel.Container();
-            _notifyIcon = new WinForms.NotifyIcon(components)
-            {
-                Icon = System.Drawing.SystemIcons.Application,
-                Text = "Phone Mic Bridge",
-                Visible = true
-            };
-
-            _notifyIcon.DoubleClick += (s, e) => RestoreWindow();
-
-            var contextMenu = new WinForms.ContextMenuStrip();
-            contextMenu.Items.Add("Show Bridge", null, (s, e) => RestoreWindow());
-            contextMenu.Items.Add("Exit", null, (s, e) => ExplicitExit());
-            
-            _notifyIcon.ContextMenuStrip = contextMenu;
+            _trayCoordinator = new TrayIconCoordinator(this, () => Close());
         }
 
         private void RestoreWindow()
         {
-            Show();
-            WindowState = WindowState.Normal;
-            Activate();
+            _trayCoordinator?.RestoreWindow();
         }
 
         private void ExplicitExit()
         {
-            _isExplicitExit = true;
-            Close();
+            _trayCoordinator?.RequestExplicitExit();
         }
 
         protected override void OnStateChanged(EventArgs e)
         {
-            if (WindowState == WindowState.Minimized)
-            {
-                Hide();
-            }
+            _trayCoordinator?.HandleWindowStateChanged();
             base.OnStateChanged(e);
         }
 
-                private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
+        private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             if (DataContext is MainViewModel vm)
             {
@@ -125,18 +99,15 @@ namespace PhoneMicBridge.Gui
 
         protected override void OnClosing(CancelEventArgs e)
         {
-            if (!_isExplicitExit)
+            _trayCoordinator?.HandleWindowClosing(e);
+
+            if (e.Cancel)
             {
-                e.Cancel = true;
-                Hide();
                 return;
             }
 
-            if (_notifyIcon != null)
-            {
-                _notifyIcon.Visible = false;
-                _notifyIcon.Dispose();
-            }
+            _trayCoordinator?.Dispose();
+            _trayCoordinator = null;
 
             base.OnClosing(e);
             if (DataContext is IDisposable disposable)

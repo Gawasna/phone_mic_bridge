@@ -1,0 +1,38 @@
+# bernstein-harmonized.yaml
+# Infrastructure-only configuration for harmonized execution with my/ task-driven workflow.
+# Tasks are injected dynamically via bridge/task-bridge.mjs, NEVER declared statically here.
+# Authority: SPEC-HARMONIZE.md Section 4.4 & PLAN-HARMONIZE.md TASK P1-4.
+
+goal: "Trien khai hoan tat cac tinh nang theo hop dong tac vu tasks/TASK-20261013-0001.md den TASK-0004.md"
+
+cli: agy
+model: "gemini-3.8-flash-medium"
+
+# Team roles
+team:
+  - manager
+  - developer
+
+role_model_policy:
+  manager:
+    cli: agy
+    model: "gemini-3.8-flash-medium"
+  developer:
+    cli: agy
+    model: "gemini-3.8-flash-medium"
+
+# Core authority context files that every executing agent must read
+context_files:
+  - ".agents/rules/task-contract.md"
+  - ".agents/rules/git-isolation.md"
+  - ".agents/rules/runtime-isolation.md"
+
+# Budget constraint (null means default or unlimited within runtime quota)
+budget: null
+
+# Mandatory human verification before merge
+approvals:
+  mode: review
+
+# Direct merge strategy via Bernstein Merge Queue
+merge_strategy: direct
