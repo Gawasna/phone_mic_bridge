@@ -5,6 +5,7 @@ dist/
 
 # Visual Studio / VS Code
 .vs/
+.kiro/*
 .vscode/
 *.user
 *.suo
@@ -38,6 +39,25 @@ NEXT_DIRECTION.md
 HANDOFF.md
 *HANDOFF*
 TRACE.md
-.agents/
+PROJECT.md
+.agents/*
 *.md
 !README.md
+!.agents/rules/*.md
+!.agents/skills/**
+!.agents/workflows/*.md
+
+# Android build artifacts & cache
+android/.gradle/
+android/build/
+android/*/build/
+android/local.properties
+android/.cxx/
+*.apk
+*.aab
+android/.idea/
+android/*.iml
+companion/.gradle/*
+companion/app/build/*
+companion/build/*
+companion/gradle/*

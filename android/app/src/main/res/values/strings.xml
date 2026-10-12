@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Phone Mic Bridge</string>
+    <string name="service_channel_name">Audio Routing Background Service</string>
+    <string name="service_channel_desc">Maintains audio routing and socket transport</string>
+    <string name="notification_title">Phone Mic Bridge Active</string>
+    <string name="notification_desc">Enforcing audio route for games and apps</string>
+    <string name="btn_start_service">Start Routing Service</string>
+    <string name="btn_stop_service">Stop Service</string>
+    <string name="btn_force_speaker">Force Built-in Speaker</string>
+    <string name="btn_force_earpiece">Force Earpiece</string>
+    <string name="btn_reset_bluetooth">Reset to Bluetooth</string>
+    <string name="status_stopped">Service Status: STOPPED</string>
+    <string name="status_running">Service Status: RUNNING</string>
+    <string name="active_route">Current Route: %s</string>
+</resources>

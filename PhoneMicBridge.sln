@@ -5,6 +5,14 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "phone_mic_bridge", "phone_mic_bridge.csproj", "{4FE4CACD-2BAC-4E11-9F7F-52806D1889F1}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05-4346-4AA6-1389-037BE0695223}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoneMicBridge.Tests", "tests\PhoneMicBridge.Tests\PhoneMicBridge.Tests.csproj", "{80C9A693-294C-4044-8251-2604F7D22A06}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Gui", "Gui", "{9824AA2D-9169-1FBC-8A83-7227C72EA239}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PhoneMicBridge.Gui", "Gui\PhoneMicBridge.Gui\PhoneMicBridge.Gui.csproj", "{93EB3D60-4469-4AB7-8FB3-9984CF845160}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,8 +35,36 @@ Global
 		{4FE4CACD-2BAC-4E11-9F7F-52806D1889F1}.Release|x64.Build.0 = Release|Any CPU
 		{4FE4CACD-2BAC-4E11-9F7F-52806D1889F1}.Release|x86.ActiveCfg = Release|Any CPU
 		{4FE4CACD-2BAC-4E11-9F7F-52806D1889F1}.Release|x86.Build.0 = Release|Any CPU
+		{80C9A693-294C-4044-8251-2604F7D22A06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{80C9A693-294C-4044-8251-2604F7D22A06}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{80C9A693-294C-4044-8251-2604F7D22A06}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{80C9A693-294C-4044-8251-2604F7D22A06}.Debug|x64.Build.0 = Debug|Any CPU
+		{80C9A693-294C-4044-8251-2604F7D22A06}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{80C9A693-294C-4044-8251-2604F7D22A06}.Debug|x86.Build.0 = Debug|Any CPU
+		{80C9A693-294C-4044-8251-2604F7D22A06}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{80C9A693-294C-4044-8251-2604F7D22A06}.Release|Any CPU.Build.0 = Release|Any CPU
+		{80C9A693-294C-4044-8251-2604F7D22A06}.Release|x64.ActiveCfg = Release|Any CPU
+		{80C9A693-294C-4044-8251-2604F7D22A06}.Release|x64.Build.0 = Release|Any CPU
+		{80C9A693-294C-4044-8251-2604F7D22A06}.Release|x86.ActiveCfg = Release|Any CPU
+		{80C9A693-294C-4044-8251-2604F7D22A06}.Release|x86.Build.0 = Release|Any CPU
+		{93EB3D60-4469-4AB7-8FB3-9984CF845160}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93EB3D60-4469-4AB7-8FB3-9984CF845160}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93EB3D60-4469-4AB7-8FB3-9984CF845160}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{93EB3D60-4469-4AB7-8FB3-9984CF845160}.Debug|x64.Build.0 = Debug|Any CPU
+		{93EB3D60-4469-4AB7-8FB3-9984CF845160}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{93EB3D60-4469-4AB7-8FB3-9984CF845160}.Debug|x86.Build.0 = Debug|Any CPU
+		{93EB3D60-4469-4AB7-8FB3-9984CF845160}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93EB3D60-4469-4AB7-8FB3-9984CF845160}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93EB3D60-4469-4AB7-8FB3-9984CF845160}.Release|x64.ActiveCfg = Release|Any CPU
+		{93EB3D60-4469-4AB7-8FB3-9984CF845160}.Release|x64.Build.0 = Release|Any CPU
+		{93EB3D60-4469-4AB7-8FB3-9984CF845160}.Release|x86.ActiveCfg = Release|Any CPU
+		{93EB3D60-4469-4AB7-8FB3-9984CF845160}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{80C9A693-294C-4044-8251-2604F7D22A06} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{93EB3D60-4469-4AB7-8FB3-9984CF845160} = {9824AA2D-9169-1FBC-8A83-7227C72EA239}
 	EndGlobalSection
 EndGlobal
