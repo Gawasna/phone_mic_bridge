@@ -1,0 +1,23 @@
+[
+  {
+    "file_path": "tasks/TASK-20261013-0004.md",
+    "agent_id": "developer-9b2fbe51",
+    "task_id": "TASK-20261013-0004",
+    "task_title": "[SPEC-002] Android Companion App USB ADB Audio Streaming and Feedback State",
+    "locked_at": 1791831368.6411412
+  },
+  {
+    "file_path": "companion/**",
+    "agent_id": "developer-9b2fbe51",
+    "task_id": "TASK-20261013-0004",
+    "task_title": "[SPEC-002] Android Companion App USB ADB Audio Streaming and Feedback State",
+    "locked_at": 1791831368.6411412
+  },
+  {
+    "file_path": "android/**",
+    "agent_id": "developer-9b2fbe51",
+    "task_id": "TASK-20261013-0004",
+    "task_title": "[SPEC-002] Android Companion App USB ADB Audio Streaming and Feedback State",
+    "locked_at": 1791831368.6411412
+  }
+]

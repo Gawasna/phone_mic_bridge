@@ -1,0 +1,38 @@
+{
+  "receipt": {
+    "adapter": "agy",
+    "admission_ttl_seconds": 86400,
+    "allowed_capabilities": [],
+    "binary": "agy",
+    "binary_path": "C:\\Users\\hungl\\AppData\\Local\\agy\\bin\\agy.EXE",
+    "canary_verdict": "stale",
+    "conformance_detail": "",
+    "conformance_run_id": "cc976cf171fd90c8febe17f748f9fb4e",
+    "conformance_verdict": "ok",
+    "contract_hash": "1bcfdcd1024b619b6820c47bb21112cdd30f71941cb918de35cab9f376b39c26",
+    "forbidden_capabilities": [
+      "agents_md",
+      "computer_use",
+      "local_models",
+      "mcp_client",
+      "mcp_server",
+      "native_subagents",
+      "spawn",
+      "vision"
+    ],
+    "generated_at": "2026-10-12T18:57:18.551227+00:00",
+    "installed_version": "1.3.3",
+    "kind": "adapter.admission_gate_receipt",
+    "probe_hash": "sha256:31171d1002aca121203f26e21bd248ecf4721787737214d281ff3ae4d84dd12a",
+    "profile_hash": "",
+    "reason": "no_receipt",
+    "remediation": "No sealed admission receipt for agy. Run `bernstein adapters verify agy --seal` to derive and anchor one.",
+    "replay_fingerprint": "sha256:e9052eb67320f35dd4d35dfe4fc271cc49a8e7c4908df6dc04c6d13e47193ad1",
+    "schema_version": 1,
+    "transcripts": [
+      "agy_adapter_spawn"
+    ],
+    "verdict": "refuse"
+  },
+  "receipt_sha256": "005d4da4657c653a5c474f12afc7055de80e080fe8bec0ef0edad32eeaad4eeb"
+}

@@ -1,0 +1,17 @@
+diff --git a/.gitignore b/.gitignore
+index 7c6453c..1533cd4 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -60,4 +60,10 @@ android/*.iml
+ companion/.gradle/*
+ companion/app/build/*
+ companion/build/*
+-companion/gradle/*
+\ No newline at end of file
++companion/gradle/*
++# Local Multi-Agent Worktrees
++.worktrees/
++
++# Bernstein Orchestrator Runtime
++.sdd/
++.sdd/runtime/

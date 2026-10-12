@@ -1,0 +1,16 @@
+[
+  {
+    "task_title": "Plan and decompose goal into tasks",
+    "fail_count": 1,
+    "last_failure": "2026-10-13",
+    "reason": "Spawn failed 3 consecutive times (unknown): manager: All spawn attempts failed for session manager-96ee7f07: agy: (no error pattern found, showing last 10 lines): <log empty or unavailable>",
+    "action": "skip"
+  },
+  {
+    "task_title": "[SPEC-008] Minimize To Tray and Close To Tray Shell Integration",
+    "fail_count": 1,
+    "last_failure": "2026-10-13",
+    "reason": "Spawn failed (transient, attempt 1): developer: Agent Antigravity is in cooldown after recent failure",
+    "action": "skip"
+  }
+]

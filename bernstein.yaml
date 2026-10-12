@@ -1,0 +1,34 @@
+# Bernstein orchestration config (Harmonized with Agent-Plug)
+goal: "Triển khai hoàn tất các tính năng theo hợp đồng tác vụ tasks/TASK-20261013-0001.md đến TASK-0004.md: Minimize To Tray, Close To Tray Shell Integration, System Tray Context Menu và kiểm thử tự động."
+
+cli: agy
+model: "gemini-3.8-flash-medium"
+
+# Khai báo vai trò cho Bernstein orchestrator
+team:
+  - manager
+  - developer
+
+role_model_policy:
+  manager:
+    cli: agy
+    model: "gemini-3.8-flash-medium"
+  developer:
+    cli: agy
+    model: "gemini-3.8-flash-medium"
+
+# Nạp các quy tắc chuẩn tắc của Agent-Plug vào context của agent
+context_files:
+  - ".agents/rules/task-contract.md"
+  - ".agents/rules/git-isolation.md"
+  - ".agents/rules/runtime-isolation.md"
+  - "tasks/TASK-20261013-0001.md"
+
+# Không áp trần budget USD cho gói quota agy
+budget: null
+
+# Bắt buộc con người phê duyệt trước khi merge vào sandbox
+approvals:
+  mode: review
+
+merge_strategy: direct

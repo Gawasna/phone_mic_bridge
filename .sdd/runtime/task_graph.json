@@ -1,0 +1,146 @@
+{
+  "nodes": [
+    {
+      "id": "TASK-20261013-0002",
+      "role": "developer",
+      "status": "open",
+      "estimated_minutes": 120
+    },
+    {
+      "id": "c050b9cc1764",
+      "role": "developer",
+      "status": "open",
+      "estimated_minutes": 720
+    },
+    {
+      "id": "TASK-20261013-0004",
+      "role": "developer",
+      "status": "claimed",
+      "estimated_minutes": 120
+    },
+    {
+      "id": "1f6fd54244b2",
+      "role": "manager",
+      "status": "failed",
+      "estimated_minutes": 120
+    },
+    {
+      "id": "3b943524e704",
+      "role": "manager",
+      "status": "failed",
+      "estimated_minutes": 240
+    },
+    {
+      "id": "TASK-20261013-0001",
+      "role": "developer",
+      "status": "failed",
+      "estimated_minutes": 120
+    },
+    {
+      "id": "TASK-20261013-0003",
+      "role": "developer",
+      "status": "failed",
+      "estimated_minutes": 120
+    },
+    {
+      "id": "445490278a0e",
+      "role": "manager",
+      "status": "failed",
+      "estimated_minutes": 720
+    },
+    {
+      "id": "7d2f879a65a1",
+      "role": "developer",
+      "status": "failed",
+      "estimated_minutes": 240
+    },
+    {
+      "id": "51ff9840fc75",
+      "role": "developer",
+      "status": "failed",
+      "estimated_minutes": 240
+    },
+    {
+      "id": "f6a53b59b811",
+      "role": "developer",
+      "status": "failed",
+      "estimated_minutes": 720
+    }
+  ],
+  "edges": [
+    {
+      "from": "51ff9840fc75",
+      "to": "TASK-20261013-0002",
+      "type": "file_overlap",
+      "semantic_type": "blocks"
+    },
+    {
+      "from": "TASK-20261013-0002",
+      "to": "TASK-20261013-0003",
+      "type": "file_overlap",
+      "semantic_type": "blocks"
+    },
+    {
+      "from": "TASK-20261013-0003",
+      "to": "c050b9cc1764",
+      "type": "file_overlap",
+      "semantic_type": "blocks"
+    },
+    {
+      "from": "51ff9840fc75",
+      "to": "7d2f879a65a1",
+      "type": "file_overlap",
+      "semantic_type": "blocks"
+    },
+    {
+      "from": "7d2f879a65a1",
+      "to": "TASK-20261013-0001",
+      "type": "file_overlap",
+      "semantic_type": "blocks"
+    },
+    {
+      "from": "TASK-20261013-0001",
+      "to": "TASK-20261013-0002",
+      "type": "file_overlap",
+      "semantic_type": "blocks"
+    },
+    {
+      "from": "c050b9cc1764",
+      "to": "f6a53b59b811",
+      "type": "file_overlap",
+      "semantic_type": "blocks"
+    },
+    {
+      "from": "TASK-20261013-0001",
+      "to": "TASK-20261013-0003",
+      "type": "file_overlap",
+      "semantic_type": "blocks"
+    },
+    {
+      "from": "51ff9840fc75",
+      "to": "TASK-20261013-0003",
+      "type": "file_overlap",
+      "semantic_type": "blocks"
+    },
+    {
+      "from": "TASK-20261013-0001",
+      "to": "f6a53b59b811",
+      "type": "file_overlap",
+      "semantic_type": "blocks"
+    }
+  ],
+  "critical_path": [
+    "51ff9840fc75",
+    "7d2f879a65a1",
+    "TASK-20261013-0001",
+    "TASK-20261013-0002",
+    "TASK-20261013-0003",
+    "c050b9cc1764",
+    "f6a53b59b811"
+  ],
+  "critical_path_minutes": 2280,
+  "parallel_width": 5,
+  "bottlenecks": [
+    "TASK-20261013-0002"
+  ]
+}

@@ -1,0 +1,65 @@
+# Bernstein Cloud - Cloudflare Workers deployment template
+#
+# Usage:
+#   1. Copy this file to your project root
+#   2. Set your account_id below
+#   3. Deploy: npx wrangler deploy
+#
+# See also: bernstein cloud init (scaffolds this file plus a runnable worker)
+#
+# This template is free-tier compatible by default: it declares only a fetch
+# worker, [vars], and the Workers AI binding, and its `main` points at the
+# src/worker.ts shipped alongside this file. The paid or ID-requiring bindings
+# (KV, Durable Objects, Queues, R2) are commented out below - uncomment and fill
+# in the required values only if your plan and use case need them. Queues in
+# particular require a Workers Paid plan.
+
+name = "bernstein-agent"
+main = "src/worker.ts"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+account_id = ""  # Set your Cloudflare account ID
+
+[vars]
+BERNSTEIN_ENV = "production"
+MAX_AGENTS = "3"
+DEFAULT_MODEL = "auto"
+
+# AI binding for Workers AI model inference (free tier eligible)
+[ai]
+binding = "AI"
+
+# ---------------------------------------------------------------------------
+# Optional bindings (disabled by default). Uncomment and set the required IDs.
+# ---------------------------------------------------------------------------
+
+# KV namespace for task state persistence
+# [[kv_namespaces]]
+# binding = "TASK_STORE"
+# id = ""  # Create with: npx wrangler kv namespace create TASK_STORE
+
+# Durable Objects for orchestrator state
+# [durable_objects]
+# bindings = [
+#   { name = "ORCHESTRATOR", class_name = "OrchestratorDO" }
+# ]
+#
+# [[migrations]]
+# tag = "v1"
+# new_classes = ["OrchestratorDO"]
+
+# Queue for async task processing (requires a Workers Paid plan)
+# [[queues.producers]]
+# queue = "bernstein-tasks"
+# binding = "TASK_QUEUE"
+#
+# [[queues.consumers]]
+# queue = "bernstein-tasks"
+# max_batch_size = 10
+# max_batch_timeout = 30
+
+# R2 bucket for artifact storage
+# [[r2_buckets]]
+# binding = "ARTIFACTS"
+# bucket_name = "bernstein-artifacts"

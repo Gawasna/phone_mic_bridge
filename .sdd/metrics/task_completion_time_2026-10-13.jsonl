@@ -1,0 +1,1 @@
+{"timestamp": 1791831495.6259465, "metric_type": "task_completion_time", "value": 139.55238914489746, "labels": {"task_id": "TASK-20261013-0001", "role": "developer", "model": "gemini-3.8-flash-medium", "success": "False", "tenant_id": "default"}}

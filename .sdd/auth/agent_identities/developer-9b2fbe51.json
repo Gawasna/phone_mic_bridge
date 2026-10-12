@@ -1,0 +1,41 @@
+{
+  "id": "developer-9b2fbe51",
+  "role": "developer",
+  "session_id": "developer-9b2fbe51",
+  "permissions": [
+    "files:read",
+    "files:write",
+    "status:read",
+    "tasks:claim",
+    "tasks:read"
+  ],
+  "status": "active",
+  "created_at": 1791831359.8617733,
+  "last_authenticated_at": 0.0,
+  "revoked_at": 0.0,
+  "revocation_reason": "",
+  "credential": {
+    "token_hash": "62414ab0e015bafecdc1337b2bea7d13f2a5eb24f932aedad2f5630e45f15e18",
+    "created_at": 1791831359.8617733,
+    "expires_at": 1791845759.0,
+    "revoked": false,
+    "token_type": "jwt",
+    "algorithm": "HS256",
+    "jti": "ce2a1691c29a496a9fe136307c49ab23",
+    "tenant_id": "default",
+    "task_ids": [
+      "TASK-20261013-0004"
+    ],
+    "allowed_files": []
+  },
+  "parent_identity_id": "run-root-20261012-185529",
+  "metadata": {
+    "source": "spawner",
+    "run_id": "20261012-185529"
+  },
+  "task_ids": [
+    "TASK-20261013-0004"
+  ],
+  "allowed_files": [],
+  "record_mac": "v1:3e25973efdb719534f1a3c3d0cc6de4f5546a5c1d6b433bf2ad0d296cf4cc45f"
+}

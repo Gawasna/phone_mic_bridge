@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.phonemicbridge.companion.app-mergeDebugResources-31:/layout/activity_main.xml",
+        "source": "com.phonemicbridge.companion.app-main-34:/layout/activity_main.xml"
+    },
+    {
+        "merged": "C:\\Users\\hungl\\.gradle\\daemon\\8.14.3\\com.phonemicbridge.companion.app-mergeDebugResources-31:\\layout\\activity_main.xml",
+        "source": "C:\\Users\\hungl\\.gradle\\daemon\\8.14.3\\com.phonemicbridge.companion.app-main-34:\\layout\\activity_main.xml"
+    }
+]

@@ -1,0 +1,30 @@
+{
+  "approvals": {
+    "mode": "review"
+  },
+  "budget": null,
+  "cli": "agy",
+  "context_files": [
+    ".agents/rules/task-contract.md",
+    ".agents/rules/git-isolation.md",
+    ".agents/rules/runtime-isolation.md",
+    "tasks/TASK-20261013-0001.md"
+  ],
+  "goal": "Tri\u1ec3n khai ho\u00e0n t\u1ea5t c\u00e1c t\u00ednh n\u0103ng theo h\u1ee3p \u0111\u1ed3ng t\u00e1c v\u1ee5 tasks/TASK-20261013-0001.md \u0111\u1ebfn TASK-0004.md: Minimize To Tray, Close To Tray Shell Integration, System Tray Context Menu v\u00e0 ki\u1ec3m th\u1eed t\u1ef1 \u0111\u1ed9ng.",
+  "merge_strategy": "direct",
+  "model": "gemini-3.8-flash-medium",
+  "role_model_policy": {
+    "developer": {
+      "cli": "agy",
+      "model": "gemini-3.8-flash-medium"
+    },
+    "manager": {
+      "cli": "agy",
+      "model": "gemini-3.8-flash-medium"
+    }
+  },
+  "team": [
+    "manager",
+    "developer"
+  ]
+}

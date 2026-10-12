@@ -1,0 +1,7 @@
+{"timestamp": 1791831331.6664476, "metric_type": "error_rate", "value": 1.0, "labels": {"error_type": "agent_spawn_failed:unknown", "provider": "default", "model": "", "role": "manager", "tenant_id": "default"}}
+{"timestamp": 1791831373.3564744, "metric_type": "error_rate", "value": 1.0, "labels": {"error_type": "agent_spawn_failed:unknown", "provider": "default", "model": "", "role": "manager", "tenant_id": "default"}}
+{"timestamp": 1791831438.9199314, "metric_type": "error_rate", "value": 1.0, "labels": {"error_type": "agent_spawn_failed:unknown", "provider": "default", "model": "", "role": "manager", "tenant_id": "default"}}
+{"timestamp": 1791831516.8089607, "metric_type": "error_rate", "value": 1.0, "labels": {"error_type": "agent_spawn_failed:unknown", "provider": "default", "model": "", "role": "developer", "tenant_id": "default"}}
+{"timestamp": 1791831517.4056492, "metric_type": "error_rate", "value": 1.0, "labels": {"error_type": "agent_spawn_failed:unknown", "provider": "default", "model": "", "role": "developer", "tenant_id": "default"}}
+{"timestamp": 1791831524.019061, "metric_type": "error_rate", "value": 1.0, "labels": {"error_type": "agent_spawn_failed:unknown", "provider": "default", "model": "", "role": "developer", "tenant_id": "default"}}
+{"timestamp": 1791831524.3784764, "metric_type": "error_rate", "value": 1.0, "labels": {"error_type": "agent_spawn_failed:unknown", "provider": "default", "model": "", "role": "developer", "tenant_id": "default"}}

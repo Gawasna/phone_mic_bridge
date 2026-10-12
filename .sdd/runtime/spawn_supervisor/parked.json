@@ -1,0 +1,33 @@
+{
+  "entries": {
+    "batch:1f6fd54244b2": {
+      "last_error": "All spawn attempts failed for session manager-96ee7f07: agy: (no error pattern found, showing last 10 lines): <log empty or unavailable>",
+      "state": "parked",
+      "total_respawns": 2
+    },
+    "batch:TASK-20261013-0001": {
+      "last_error": "Agent Antigravity is in cooldown after recent failure",
+      "state": "respawning",
+      "total_respawns": 1
+    },
+    "batch:TASK-20261013-0001,TASK-20261013-0002": {
+      "last_error": "Agent Antigravity is in cooldown after recent failure",
+      "state": "respawning",
+      "total_respawns": 1
+    },
+    "batch:TASK-20261013-0002,TASK-20261013-0003": {
+      "last_error": "Agent Antigravity is in cooldown after recent failure",
+      "state": "respawning",
+      "total_respawns": 1
+    },
+    "batch:TASK-20261013-0003": {
+      "last_error": "Agent Antigravity is in cooldown after recent failure",
+      "state": "respawning",
+      "total_respawns": 1
+    }
+  },
+  "session_ids": [
+    "batch:1f6fd54244b2"
+  ],
+  "updated_at": 1791831524.3854077
+}

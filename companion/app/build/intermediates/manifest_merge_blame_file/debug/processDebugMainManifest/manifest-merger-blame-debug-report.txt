@@ -1,0 +1,165 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.phonemicbridge.companion"
+4    android:versionCode="1"
+5    android:versionName="0.1.0-poc" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="31"
+9        android:targetSdkVersion="35" />
+10
+11    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+11-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:4:5-71
+11-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:4:22-68
+12    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+12-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:5:5-80
+12-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:5:22-77
+13    <uses-permission
+13-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:6:5-95
+14        android:name="android.permission.BLUETOOTH"
+14-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:6:22-65
+15        android:maxSdkVersion="30" />
+15-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:6:66-92
+16    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+16-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:7:5-76
+16-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:7:22-73
+17    <uses-permission android:name="android.permission.MANAGE_OWN_CALLS" />
+17-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:8:5-75
+17-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:8:22-72
+18    <uses-permission android:name="android.permission.CALL_PHONE" />
+18-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:9:5-69
+18-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:9:22-66
+19
+20    <permission
+20-->[androidx.core:core:1.15.0] C:\Users\hungl\.gradle\caches\8.14.3\transforms\489c7a34246b993c1c2ea38bc8ba7e9a\transformed\core-1.15.0\AndroidManifest.xml:22:5-24:47
+21        android:name="com.phonemicbridge.companion.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+21-->[androidx.core:core:1.15.0] C:\Users\hungl\.gradle\caches\8.14.3\transforms\489c7a34246b993c1c2ea38bc8ba7e9a\transformed\core-1.15.0\AndroidManifest.xml:23:9-81
+22        android:protectionLevel="signature" />
+22-->[androidx.core:core:1.15.0] C:\Users\hungl\.gradle\caches\8.14.3\transforms\489c7a34246b993c1c2ea38bc8ba7e9a\transformed\core-1.15.0\AndroidManifest.xml:24:9-44
+23
+24    <uses-permission android:name="com.phonemicbridge.companion.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+24-->[androidx.core:core:1.15.0] C:\Users\hungl\.gradle\caches\8.14.3\transforms\489c7a34246b993c1c2ea38bc8ba7e9a\transformed\core-1.15.0\AndroidManifest.xml:26:5-97
+24-->[androidx.core:core:1.15.0] C:\Users\hungl\.gradle\caches\8.14.3\transforms\489c7a34246b993c1c2ea38bc8ba7e9a\transformed\core-1.15.0\AndroidManifest.xml:26:22-94
+25
+26    <application
+26-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:11:5-38:19
+27        android:allowBackup="false"
+27-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:12:9-36
+28        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+28-->[androidx.core:core:1.15.0] C:\Users\hungl\.gradle\caches\8.14.3\transforms\489c7a34246b993c1c2ea38bc8ba7e9a\transformed\core-1.15.0\AndroidManifest.xml:28:18-86
+29        android:debuggable="true"
+30        android:extractNativeLibs="false"
+31        android:icon="@mipmap/ic_launcher"
+31-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:13:9-43
+32        android:label="PMB Companion"
+32-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:14:9-38
+33        android:roundIcon="@mipmap/ic_launcher_round"
+33-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:15:9-54
+34        android:supportsRtl="true"
+34-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:16:9-35
+35        android:theme="@style/Theme.PhoneMicBridgeCompanion" >
+35-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:17:9-61
+36        <service
+36-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:19:9-26:19
+37            android:name="com.phonemicbridge.companion.BridgeConnectionService"
+37-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:20:13-52
+38            android:exported="true"
+38-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:21:13-36
+39            android:permission="android.permission.BIND_TELECOM_CONNECTION_SERVICE" >
+39-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:22:13-84
+40            <intent-filter>
+40-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:23:13-25:29
+41                <action android:name="android.telecom.ConnectionService" />
+41-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:24:17-76
+41-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:24:25-73
+42            </intent-filter>
+43        </service>
+44
+45        <activity
+45-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:28:9-36:20
+46            android:name="com.phonemicbridge.companion.MainActivity"
+46-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:29:13-41
+47            android:exported="true"
+47-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:30:13-36
+48            android:screenOrientation="portrait" >
+48-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:31:13-49
+49            <intent-filter>
+49-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:32:13-35:29
+50                <action android:name="android.intent.action.MAIN" />
+50-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:33:17-69
+50-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:33:25-66
+51
+52                <category android:name="android.intent.category.LAUNCHER" />
+52-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:34:17-77
+52-->C:\Users\hungl\phone_mic_bridge\companion\app\src\main\AndroidManifest.xml:34:27-74
+53            </intent-filter>
+54        </activity>
+55
+56        <provider
+56-->[androidx.emoji2:emoji2:1.3.0] C:\Users\hungl\.gradle\caches\8.14.3\transforms\37b541b15874beb01c6c56e2deb14cd3\transformed\emoji2-1.3.0\AndroidManifest.xml:24:9-32:20
+57            android:name="androidx.startup.InitializationProvider"
+57-->[androidx.emoji2:emoji2:1.3.0] C:\Users\hungl\.gradle\caches\8.14.3\transforms\37b541b15874beb01c6c56e2deb14cd3\transformed\emoji2-1.3.0\AndroidManifest.xml:25:13-67
+58            android:authorities="com.phonemicbridge.companion.androidx-startup"
+58-->[androidx.emoji2:emoji2:1.3.0] C:\Users\hungl\.gradle\caches\8.14.3\transforms\37b541b15874beb01c6c56e2deb14cd3\transformed\emoji2-1.3.0\AndroidManifest.xml:26:13-68
+59            android:exported="false" >
+59-->[androidx.emoji2:emoji2:1.3.0] C:\Users\hungl\.gradle\caches\8.14.3\transforms\37b541b15874beb01c6c56e2deb14cd3\transformed\emoji2-1.3.0\AndroidManifest.xml:27:13-37
+60            <meta-data
+60-->[androidx.emoji2:emoji2:1.3.0] C:\Users\hungl\.gradle\caches\8.14.3\transforms\37b541b15874beb01c6c56e2deb14cd3\transformed\emoji2-1.3.0\AndroidManifest.xml:29:13-31:52
+61                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+61-->[androidx.emoji2:emoji2:1.3.0] C:\Users\hungl\.gradle\caches\8.14.3\transforms\37b541b15874beb01c6c56e2deb14cd3\transformed\emoji2-1.3.0\AndroidManifest.xml:30:17-75
+62                android:value="androidx.startup" />
+62-->[androidx.emoji2:emoji2:1.3.0] C:\Users\hungl\.gradle\caches\8.14.3\transforms\37b541b15874beb01c6c56e2deb14cd3\transformed\emoji2-1.3.0\AndroidManifest.xml:31:17-49
+63            <meta-data
+63-->[androidx.lifecycle:lifecycle-process:2.6.2] C:\Users\hungl\.gradle\caches\8.14.3\transforms\cc6fe8fe1b4719d605da147c18c2d9b7\transformed\lifecycle-process-2.6.2\AndroidManifest.xml:29:13-31:52
+64                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+64-->[androidx.lifecycle:lifecycle-process:2.6.2] C:\Users\hungl\.gradle\caches\8.14.3\transforms\cc6fe8fe1b4719d605da147c18c2d9b7\transformed\lifecycle-process-2.6.2\AndroidManifest.xml:30:17-78
+65                android:value="androidx.startup" />
+65-->[androidx.lifecycle:lifecycle-process:2.6.2] C:\Users\hungl\.gradle\caches\8.14.3\transforms\cc6fe8fe1b4719d605da147c18c2d9b7\transformed\lifecycle-process-2.6.2\AndroidManifest.xml:31:17-49
+66            <meta-data
+66-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\hungl\.gradle\caches\8.14.3\transforms\9f6acc3bc8cb99f309b0cfcb22f33d65\transformed\profileinstaller-1.3.1\AndroidManifest.xml:29:13-31:52
+67                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+67-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\hungl\.gradle\caches\8.14.3\transforms\9f6acc3bc8cb99f309b0cfcb22f33d65\transformed\profileinstaller-1.3.1\AndroidManifest.xml:30:17-85
+68                android:value="androidx.startup" />
+68-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\hungl\.gradle\caches\8.14.3\transforms\9f6acc3bc8cb99f309b0cfcb22f33d65\transformed\profileinstaller-1.3.1\AndroidManifest.xml:31:17-49
+69        </provider>
+70
+71        <receiver
+71-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\hungl\.gradle\caches\8.14.3\transforms\9f6acc3bc8cb99f309b0cfcb22f33d65\transformed\profileinstaller-1.3.1\AndroidManifest.xml:34:9-52:20
+72            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+72-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\hungl\.gradle\caches\8.14.3\transforms\9f6acc3bc8cb99f309b0cfcb22f33d65\transformed\profileinstaller-1.3.1\AndroidManifest.xml:35:13-76
+73            android:directBootAware="false"
+73-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\hungl\.gradle\caches\8.14.3\transforms\9f6acc3bc8cb99f309b0cfcb22f33d65\transformed\profileinstaller-1.3.1\AndroidManifest.xml:36:13-44
+74            android:enabled="true"
+74-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\hungl\.gradle\caches\8.14.3\transforms\9f6acc3bc8cb99f309b0cfcb22f33d65\transformed\profileinstaller-1.3.1\AndroidManifest.xml:37:13-35
+75            android:exported="true"
+75-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\hungl\.gradle\caches\8.14.3\transforms\9f6acc3bc8cb99f309b0cfcb22f33d65\transformed\profileinstaller-1.3.1\AndroidManifest.xml:38:13-36
+76            android:permission="android.permission.DUMP" >
+76-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\hungl\.gradle\caches\8.14.3\transforms\9f6acc3bc8cb99f309b0cfcb22f33d65\transformed\profileinstaller-1.3.1\AndroidManifest.xml:39:13-57
+77            <intent-filter>
+77-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\hungl\.gradle\caches\8.14.3\transforms\9f6acc3bc8cb99f309b0cfcb22f33d65\transformed\profileinstaller-1.3.1\AndroidManifest.xml:40:13-42:29
+78                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+78-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\hungl\.gradle\caches\8.14.3\transforms\9f6acc3bc8cb99f309b0cfcb22f33d65\transformed\profileinstaller-1.3.1\AndroidManifest.xml:41:17-91
+78-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\hungl\.gradle\caches\8.14.3\transforms\9f6acc3bc8cb99f309b0cfcb22f33d65\transformed\profileinstaller-1.3.1\AndroidManifest.xml:41:25-88
+79            </intent-filter>
+80            <intent-filter>
+80-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\hungl\.gradle\caches\8.14.3\transforms\9f6acc3bc8cb99f309b0cfcb22f33d65\transformed\profileinstaller-1.3.1\AndroidManifest.xml:43:13-45:29
+81                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+81-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\hungl\.gradle\caches\8.14.3\transforms\9f6acc3bc8cb99f309b0cfcb22f33d65\transformed\profileinstaller-1.3.1\AndroidManifest.xml:44:17-85
+81-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\hungl\.gradle\caches\8.14.3\transforms\9f6acc3bc8cb99f309b0cfcb22f33d65\transformed\profileinstaller-1.3.1\AndroidManifest.xml:44:25-82
+82            </intent-filter>
+83            <intent-filter>
+83-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\hungl\.gradle\caches\8.14.3\transforms\9f6acc3bc8cb99f309b0cfcb22f33d65\transformed\profileinstaller-1.3.1\AndroidManifest.xml:46:13-48:29
+84                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+84-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\hungl\.gradle\caches\8.14.3\transforms\9f6acc3bc8cb99f309b0cfcb22f33d65\transformed\profileinstaller-1.3.1\AndroidManifest.xml:47:17-88
+84-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\hungl\.gradle\caches\8.14.3\transforms\9f6acc3bc8cb99f309b0cfcb22f33d65\transformed\profileinstaller-1.3.1\AndroidManifest.xml:47:25-85
+85            </intent-filter>
+86            <intent-filter>
+86-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\hungl\.gradle\caches\8.14.3\transforms\9f6acc3bc8cb99f309b0cfcb22f33d65\transformed\profileinstaller-1.3.1\AndroidManifest.xml:49:13-51:29
+87                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+87-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\hungl\.gradle\caches\8.14.3\transforms\9f6acc3bc8cb99f309b0cfcb22f33d65\transformed\profileinstaller-1.3.1\AndroidManifest.xml:50:17-95
+87-->[androidx.profileinstaller:profileinstaller:1.3.1] C:\Users\hungl\.gradle\caches\8.14.3\transforms\9f6acc3bc8cb99f309b0cfcb22f33d65\transformed\profileinstaller-1.3.1\AndroidManifest.xml:50:25-92
+88            </intent-filter>
+89        </receiver>
+90    </application>
+91
+92</manifest>

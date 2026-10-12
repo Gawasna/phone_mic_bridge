@@ -1,0 +1,26 @@
+{
+  "config_hash": "95106ade0e886ad683e86d571780973b53b0c6e28ebe52bfeb0426332c596ff4",
+  "seed_path": "C:\\Users\\hungl\\phone_mic_bridge\\bernstein.yaml",
+  "reloaded_at": 1791831321.0972207,
+  "last_diff": {
+    "changed": true,
+    "changes": [
+      {
+        "kind": "added",
+        "path": "role_model_policy.manager",
+        "before": "",
+        "after": "object(2)"
+      },
+      {
+        "kind": "changed",
+        "path": "team",
+        "before": "list(1)",
+        "after": "list(2)"
+      }
+    ],
+    "added": 1,
+    "removed": 0,
+    "modified": 1,
+    "truncated": false
+  }
+}

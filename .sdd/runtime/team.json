@@ -1,0 +1,37 @@
+{
+  "updated_at": 1791831368.657892,
+  "members": [
+    {
+      "agent_id": "developer-a158475a",
+      "role": "developer",
+      "name": "developer-a158475a",
+      "model": "gemini-3.8-flash-medium",
+      "color": "",
+      "mode": "",
+      "status": "starting",
+      "is_active": true,
+      "task_ids": [
+        "TASK-20261013-0001"
+      ],
+      "spawned_at": 1791831356.0712795,
+      "finished_at": 0.0,
+      "provider": "agy"
+    },
+    {
+      "agent_id": "developer-9b2fbe51",
+      "role": "developer",
+      "name": "developer-9b2fbe51",
+      "model": "gemini-3.8-flash-medium",
+      "color": "",
+      "mode": "",
+      "status": "starting",
+      "is_active": true,
+      "task_ids": [
+        "TASK-20261013-0004"
+      ],
+      "spawned_at": 1791831368.657888,
+      "finished_at": 0.0,
+      "provider": "agy"
+    }
+  ]
+}

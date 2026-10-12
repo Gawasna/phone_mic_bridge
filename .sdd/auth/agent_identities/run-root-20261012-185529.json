@@ -1,0 +1,40 @@
+{
+  "id": "run-root-20261012-185529",
+  "role": "manager",
+  "session_id": "run-root-20261012-185529",
+  "permissions": [
+    "agents:read",
+    "agents:spawn",
+    "files:read",
+    "files:write",
+    "status:read",
+    "tasks:read",
+    "tasks:write"
+  ],
+  "status": "active",
+  "created_at": 1791831329.8741937,
+  "last_authenticated_at": 0.0,
+  "revoked_at": 0.0,
+  "revocation_reason": "",
+  "credential": {
+    "token_hash": "2b2f80368a9db5030b56dc945608da5f6e141b86ec92647239442aed1d1cffaa",
+    "created_at": 1791831329.8741937,
+    "expires_at": 1791917729.0,
+    "revoked": false,
+    "token_type": "jwt",
+    "algorithm": "HS256",
+    "jti": "1563303a9699477faa0e4cd36ffcd547",
+    "tenant_id": "default",
+    "task_ids": [],
+    "allowed_files": []
+  },
+  "parent_identity_id": null,
+  "metadata": {
+    "source": "orchestrator",
+    "run_id": "20261012-185529",
+    "run_root": "true"
+  },
+  "task_ids": [],
+  "allowed_files": [],
+  "record_mac": "v1:a2c98abc92d82f650dbdaba242d422ebecc0064c173f680b8ed7ed600e749865"
+}

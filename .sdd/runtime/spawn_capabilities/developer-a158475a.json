@@ -1,0 +1,21 @@
+{
+  "agent_id": "developer-a158475a",
+  "role": "developer",
+  "timestamp": "2026-10-12T18:55:46.607803+00:00",
+  "tools": [
+    "adapter.Antigravity"
+  ],
+  "evaluated": [],
+  "held_out": [
+    {
+      "tool": "adapter.Antigravity",
+      "reason": "outer-envelope"
+    }
+  ],
+  "triggered": [],
+  "allowed": true,
+  "reason": "capability chain ok",
+  "mode": "enforce",
+  "unknown_tools": [],
+  "offending_tools": []
+}
