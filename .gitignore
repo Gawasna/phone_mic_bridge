@@ -56,8 +56,10 @@ android/.cxx/
 *.apk
 *.aab
 android/.idea/
-android/*.iml
 companion/.gradle/*
 companion/app/build/*
 companion/build/*
 companion/gradle/*
+
+# Bernstein state & worktrees
+.sdd/
