@@ -7,5 +7,7 @@ data class CompanionState(
     val statusMessage: String = "Ready",
     val isBridgeConnected: Boolean = false,
     val connectedBridgeName: String = "",
-    val isScoAudioActive: Boolean = false
+    val isScoAudioActive: Boolean = false,
+    val isSocketStreamingActive: Boolean = false,
+    val bridgeConnectionState: BridgeConnectionState = BridgeConnectionState.DISCONNECTED
 )
