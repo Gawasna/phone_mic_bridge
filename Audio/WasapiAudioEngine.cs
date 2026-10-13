@@ -49,6 +49,30 @@ namespace PhoneMicBridge.Audio
 
             _deviceWatcher = new DeviceNotificationWatcher();
             _deviceWatcher.DeviceStateChanged += OnDeviceStateChanged;
+            _deviceWatcher.DeviceRemoved += OnDeviceRemoved;
+        }
+
+        private void OnDeviceRemoved(object? sender, DeviceNotificationEventArgs e)
+        {
+            if (_isDisposed) return;
+
+            bool isRender = string.Equals(e.DeviceId, _renderDevice.ID, StringComparison.OrdinalIgnoreCase);
+            bool isCapture = _captureDevice != null && string.Equals(e.DeviceId, _captureDevice.ID, StringComparison.OrdinalIgnoreCase);
+
+            if (isRender)
+            {
+                DeviceWarningReceived?.Invoke(this, $"Target HFP device removed: {e.DeviceId}");
+                if (State == BridgeState.Streaming)
+                {
+                    Stop();
+                    _stateMachine.TryTransitionTo(BridgeState.Error);
+                }
+            }
+            else if (isCapture)
+            {
+                DeviceWarningReceived?.Invoke(this, $"Microphone capture device removed: {e.DeviceId}");
+                Pipeline.SetMicEnabled(false);
+            }
         }
 
         private void OnDeviceStateChanged(object? sender, DeviceStateChangedEventArgs e)
@@ -235,6 +259,7 @@ namespace PhoneMicBridge.Audio
             _stateMachine.TryTransitionTo(BridgeState.Disconnected);
 
             _deviceWatcher.DeviceStateChanged -= OnDeviceStateChanged;
+            _deviceWatcher.DeviceRemoved -= OnDeviceRemoved;
             _deviceWatcher.Dispose();
             _wasapiOut?.Dispose();
             _wasapiCapture?.Dispose();

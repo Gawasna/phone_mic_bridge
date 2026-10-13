@@ -102,6 +102,19 @@ namespace PhoneMicBridge.Devices
             }
         }
 
+        public static MMDevice GetDefaultRenderDevice()
+        {
+            var enumerator = new MMDeviceEnumerator();
+            try
+            {
+                return enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Multimedia);
+            }
+            catch
+            {
+                return enumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Console);
+            }
+        }
+
         public static MMDevice FindCaptureOrLoopbackDevice(string? query)
         {
             if (string.IsNullOrWhiteSpace(query))

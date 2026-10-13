@@ -7,6 +7,7 @@ namespace PhoneMicBridge.Core
         Streaming,
         Paused,
         Stopped,
+        Degraded,
         Error
     }
 }
