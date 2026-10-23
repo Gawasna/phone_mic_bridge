@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">PMB Companion</string>
+    <string name="app_full_name">Phone Mic Bridge Companion</string>
+    <string name="service_channel_name">Audio Routing Background Service</string>
+    <string name="service_channel_desc">Maintains audio routing and socket transport</string>
+    <string name="notification_title">Phone Mic Bridge - %1$s</string>
+    <string name="notification_route_desc">Route: %1$s</string>
+    <string name="notif_action_speaker">Speaker</string>
+    <string name="notif_action_earpiece">Earpiece</string>
+    <string name="notif_action_stop">Stop Route</string>
+    <string name="btn_start_service">Start Routing Service</string>
+    <string name="btn_stop_service">Stop Service</string>
+    <string name="btn_force_speaker">Force Built-in Speaker</string>
+    <string name="btn_force_earpiece">Force Earpiece</string>
+    <string name="btn_reset_bluetooth">Reset to Bluetooth</string>
+    <string name="status_stopped">Service Status: STOPPED</string>
+    <string name="status_running">Service Status: RUNNING</string>
+    <string name="bridge_status_streaming">● Bridge: STREAMING ACTIVE</string>
+    <string name="bridge_status_standby">● Bridge: STANDBY</string>
+    <string name="bridge_status_disconnected">● Bridge: DISCONNECTED</string>
+    <string name="host_stream_adb">Stream Source: USB ADB Socket%1$s [48kHz PCM]</string>
+    <string name="host_stream_sco">Stream Source: Bluetooth SCO (%1$s)</string>
+    <string name="host_standby">Host Linked: %1$s (Awaiting Stream)</string>
+    <string name="host_disconnected">Host: Not Connected (ADB / Bluetooth)</string>
+    <string name="current_route_format">Current Route: %1$s (%2$s)</string>
+    <string name="audio_route_control_title">Audio Route Control</string>
+</resources>

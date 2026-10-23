@@ -1,0 +1,75 @@
+# Build results
+bin/
+obj/
+dist/
+
+# Visual Studio / VS Code / IDEs
+.vs/
+.kiro/*
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.idea/
+*.sln.iml
+
+# OS specific
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Temporary & Log files
+*.log
+scratch/
+logs_llm/
+
+# Backups & Archives
+*.bundle
+*.bak
+
+# Media & Audio test files
+*.mp3
+*.wav
+*.ogg
+*.flac
+*.aac
+*.m4a
+
+# Agent orchestration & Internal specs
+.agents/*
+.claude/
+.sdd/
+.worktrees/
+graphify-out/
+bernstein.yaml
+tasks/
+specs/
+contracts/
+plans/
+templates/
+trace/
+docs/
+NEXT_DIRECTION.md
+HANDOFF.md
+*HANDOFF*
+TRACE.md
+PROJECT.md
+AGENTS.md
+CLAUDE.md
+DIRECTION.md
+ROUTER.md
+
+# Markdown rule: only README.md tracked
+*.md
+!README.md
+
+# Android build artifacts & cache
+android/.gradle/
+android/build/
+android/*/build/
+android/local.properties
+android/.cxx/
+*.apk
+*.aab
+android/.idea/

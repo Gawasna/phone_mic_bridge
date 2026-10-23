@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:gravity="center_horizontal">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/app_full_name"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Service Running Status -->
+    <TextView
+        android:id="@+id/statusText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/status_stopped"
+        android:textSize="15sp"
+        android:textColor="@color/teal_700"
+        android:layout_marginBottom="4dp" />
+
+    <!-- Bluetooth Bridge Link Status -->
+    <TextView
+        android:id="@+id/bridgeStatusText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/bridge_status_disconnected"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:textColor="@color/status_red"
+        android:layout_marginBottom="4dp" />
+
+    <!-- Host Device Info -->
+    <TextView
+        android:id="@+id/hostDeviceText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/host_disconnected"
+        android:textSize="13sp"
+        android:textColor="@color/status_gray"
+        android:layout_marginBottom="12dp" />
+
+    <!-- Audio Route Status -->
+    <TextView
+        android:id="@+id/routeText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Current Route: DEFAULT"
+        android:textSize="14sp"
+        android:layout_marginBottom="24dp" />
+
+    <!-- Service Toggle Button -->
+    <Button
+        android:id="@+id/toggleServiceButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_start_service"
+        android:layout_marginBottom="20dp" />
+
+    <!-- Route Controls Title -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/audio_route_control_title"
+        android:textStyle="bold"
+        android:layout_marginBottom="10dp" />
+
+    <Button
+        android:id="@+id/speakerRouteButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_force_speaker"
+        android:layout_marginBottom="8dp" />
+
+    <Button
+        android:id="@+id/earpieceRouteButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_force_earpiece"
+        android:layout_marginBottom="8dp" />
+
+    <Button
+        android:id="@+id/bluetoothRouteButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_reset_bluetooth"
+        android:layout_marginBottom="8dp" />
+
+</LinearLayout>

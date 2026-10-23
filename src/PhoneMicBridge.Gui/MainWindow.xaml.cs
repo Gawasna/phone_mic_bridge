@@ -1,0 +1,147 @@
+using System;
+using System.ComponentModel;
+using System.Globalization;
+using System.Windows;
+using System.Windows.Data;
+using PhoneMicBridge.Gui.ViewModels;
+using WinForms = System.Windows.Forms;
+
+namespace PhoneMicBridge.Gui
+{
+    /// <summary>
+    /// Value converter to determine visibility of pre-flight remediation guidance.
+    /// Returns Visible when check status is Fail or Unknown, and Collapsed when Pass.
+    /// </summary>
+    public class StatusToRemediationVisibilityConverter : IValueConverter
+    {
+        public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        {
+            string? s = value?.ToString();
+            if (string.Equals(s, "Fail", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(s, "Unknown", StringComparison.OrdinalIgnoreCase))
+            {
+                return Visibility.Visible;
+            }
+            return Visibility.Collapsed;
+        }
+
+        public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotSupportedException();
+    }
+
+    /// <summary>
+    /// Interaction logic for MainWindow.xaml.
+    /// Uses native OS chrome with custom window title matching REVIEW-UX-001 specifications.
+    /// </summary>
+    public partial class MainWindow : Window
+    {
+        private TrayIconCoordinator? _trayCoordinator;
+
+        public MainWindow()
+        {
+            InitializeComponent();
+            _trayCoordinator = new TrayIconCoordinator(this, () => Close());
+        }
+
+        private void RestoreWindow()
+        {
+            _trayCoordinator?.RestoreWindow();
+        }
+
+        private void ExplicitExit()
+        {
+            _trayCoordinator?.RequestExplicitExit();
+        }
+
+        protected override void OnStateChanged(EventArgs e)
+        {
+            _trayCoordinator?.HandleWindowStateChanged();
+            base.OnStateChanged(e);
+        }
+
+        private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (DataContext is MainViewModel vm)
+            {
+                // Breakpoint 1050px: Compacted HUD (720x680) vs Fullscreen Studio (1920x1080)
+                vm.IsCompactMode = e.NewSize.Width < 1050;
+                vm.WindowWidth = e.NewSize.Width;
+            }
+        }
+
+        private void BtDisabledToggle_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.Primitives.ToggleButton toggle && toggle.Visibility != Visibility.Visible)
+            {
+                toggle.IsChecked = false;
+            }
+        }
+
+        private void EngineSpecsButton_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show(
+                "Phone Mic Bridge Engine v0.0.3 Technical Specs:\n\n" +
+                "• Target Transport: Bluetooth HFP / SCO Channel (16 kHz, 16-bit Mono)\n" +
+                "• Responsive Layout: Dual Layout (Compacted HUD 720x680 & Fullscreen Studio 1920x1080)\n" +
+                "• Metering: 30Hz Real-Time 3-Tier Multi-Meter (Input, DSP Stage, Host Output)\n" +
+                "• WASAPI Mode: Shared / Event-driven Render Endpoint\n" +
+                "• Buffer Architecture: Zero-Allocation Lock-Free RingBuffer (~18ms latency)\n" +
+                "• Resampler: Linear Phase Low-Latency Resampler\n" +
+                "• Truthful Status: 3-Tier Independent Endpoint & Transport Verification",
+                "Engine Technical Specifications v0.0.3",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+
+        private void ExportDiagnosticsMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var exporter = new PhoneMicBridge.Application.DiagnosticsBundleExporter();
+                var bundle = exporter.GenerateBundle("Diagnostics requested from Tools menu.");
+
+                var saveFileDialog = new Microsoft.Win32.SaveFileDialog
+                {
+                    FileName = $"PhoneMicBridge_Diagnostics_{DateTime.Now:yyyyMMdd_HHmmss}.txt",
+                    DefaultExt = ".txt",
+                    Filter = "Text documents (.txt)|*.txt|All files (*.*)|*.*"
+                };
+
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    System.IO.File.WriteAllText(saveFileDialog.FileName, bundle);
+                    MessageBox.Show("Diagnostics bundle exported successfully (privacy-redacted).", "Export Diagnostics", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Failed to export diagnostics: {ex.Message}", "Export Diagnostics Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
+        {
+            ExplicitExit();
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            _trayCoordinator?.HandleWindowClosing(e);
+
+            if (e.Cancel)
+            {
+                return;
+            }
+
+            _trayCoordinator?.Dispose();
+            _trayCoordinator = null;
+
+            base.OnClosing(e);
+            if (DataContext is IDisposable disposable)
+            {
+                disposable.Dispose();
+            }
+        }
+    }
+}
+
+
